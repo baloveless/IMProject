@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+      crossorigin="anonymous"
+    />
+    <title>IMProject</title>
+    <style>
+      #message-container {
+        height: 300px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var host = 'http://localhost:3000';
+    var socket = io(); // connection
+    var user;
+    socket.on("enterRoom", function (msgs, users) {
+      if (msgs) {
+        for (var x = 0; x < msgs.length; x++) {
+          var message = document.createElement("div");
+          message.setAttribute("class", "chat-message");
+          message.textContent = users[x] + ": " + msgs[x];
+          var messages = document.getElementById("message-container");
+          messages.appendChild(message);
+          messages.insertBefore(message, messages.firstChild);
+        }
+      }
+    });
+
+
+  </script>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-md-8">
+          <h1 class="text-center">Chat Rooms</h1>
+          <p class="text-center">Please Choose a chat</p>
+          <div id="error-container"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <button
+            type="button"
+            name="button"
+            onclick="document.location.href = host + '/createChat'"
+            class="btn btn-primary btn-lg"
+          >
+            New Chat
+          </button>
+        </div>
+        <div class="col">
+          <button
+            type="button"
+            name="button"
+            onclick="logout()"
+            class="btn btn-danger btn-lg"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+      <br />
+      <div class="row">
+        <div class="col-12 col-md-8"><div id="chat-container"></div></div>
+        <div class="col-6 col-md-4"><div id="delete-container"></div></div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+      crossorigin="anonymous"
+    />
+    <title>IMProject</title>
+    <style>
+      #message-container {
+        height: 300px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <script src="/socket.io/socket.io.js"></script>
+  <script></script>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+          <h1 class="text-center">Chat Room</h1>
+          <div id="error-container"></div>
+          <br /><button
+            type="button"
+            name="button"
+            class="btn btn-danger btn-block"
+            onclick="chatList()"
+          >
+            Chats</button
+          ><br />
+          <div class="card">
+            <div id="message-container" class="card-block"></div>
+          </div>
+          <br /><input
+            type="text"
+            id="message"
+            class="form-control"
+          /><br /><button
+            type="button"
+            name="button"
+            onclick="sendMessage()"
+            class="btn btn-primary btn-block"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

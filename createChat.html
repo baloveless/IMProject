@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+      crossorigin="anonymous"
+    />
+    <title>IMProject</title>
+    <style>
+      #message-container {
+        height: 300px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <script src="/socket.io/socket.io.js"></script>
+  <script></script>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+          <h1 class="text-center">Create New Chat Room</h1>
+          <p>
+            Please enter the usernames of those you want in the chat separate by
+            commas
+          </p>
+          <div id="error-container"></div>
+          <input
+            type="text"
+            id="users"
+            class="form-control"
+            placeholder="Harry, Hank, etc."
+          /><button
+            type="button"
+            name="button"
+            onclick="makeNewRoom()"
+            class="btn btn-primary btn-lg btn-block"
+          >
+            Create</button
+          ><br /><button
+            type="button"
+            name="button"
+            onclick="chatList()"
+            class="btn btn-secondary btn-lg btn-block"
+          >
+            back</button
+          >
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
