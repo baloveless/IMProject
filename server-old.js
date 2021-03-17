@@ -28,7 +28,7 @@ mongoose.connection.once('open', () => {
 });
 
 app.get('/', function(req, res) {
-   res.sendFile(__dirname + '/index.html');
+   res.sendFile(__dirname + '/index-old.html');
 });
 
 app.get('/test', function(req, res) {

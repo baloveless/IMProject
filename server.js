@@ -7,16 +7,14 @@ var fs = require('fs');
 var AllowedUserName = /[^a-zA-Z0-9]/g;
 var AllowedChat = /[^a-zA-Z0-9!.,?]/g;
 
-require("dotenv").config();
+require('dotenv').config();
 
 const mongoose = require('mongoose');
-const { assert } = require('assert');
 mongoose.set('useFindAndModify', false);
-const Chat = require('./models/chat');
 // insert in .env for local connection 'mongodb://localhost/IMProject'
 mongoose.connect(process.env.DATABASE, {
 	useUnifiedTopology: true,
-	// useNewUrlParser: true // for local connection
+	useNewUrlParser: true // for local connection
 });
 
 mongoose.connection.on('error', (err) => {
