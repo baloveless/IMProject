@@ -80,12 +80,10 @@ if (!isProduction) {
 
 
 
-app.post('/login', function(req, res){
-   console.log("a user disconnected");
-   passport.authenticate('local'),
-      function (req, res) {
-         res.redirect('/users/' + req.user.username);
-      }
+app.post('/login', passport.authenticate('local'),
+   function (req, res) {
+      console.log("Login request received");
+      res.redirect('/api/users');
 });
 
 app.get('/', function(req, res) {
