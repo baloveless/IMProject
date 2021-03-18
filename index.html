@@ -1,36 +1,67 @@
 <!DOCTYPE html>
 <html>
-   <head>
-	   <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-      <title>IMProject</title>
-      <style>
-        #message-container{height:300px;overflow: auto;}
-      </style>
-   </head>
-   <script src = "/socket.io/socket.io.js"></script> 
-   <script>
-      var socket = io(); // connection
-  </script>
-   
-   <body>
-			<div class="container">
-      	<div class="row">
-        	<div class="col-md-6 offset-md-3 col-sm-12">
-          	<h1 class="text-center">IM Login</h1>
-          	<p class="text=center">Please enter your username and password</p>
-            <div id = "error-container"></div>
-					<input id = "name" class="form-control" type = "text" name = "name" value = "" placeholder = "Enter your name!">
-               <br/>
-      			<button type = "button" class="btn btn-primary btn-block" name = "button" onclick = "setUsername()">Login</button>
-               <br/>
-      			<button type = "button" class="btn btn-secondary btn-block" name = "button" onclick = "createAccount()">Create Account</button>
-      		</div>
-      	</div>
-    	</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+      crossorigin="anonymous"
+    />
+    <title>IMProject</title>
+    <style>
+      #login-card {
+        height: 150px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io(); // connection
 
-      
-   </body>
+    function login() {
+      document.getElementById("name").value;
+      if (name === "")
+        document.getElementById("error-container").innerHTML =
+          "<p>Please Enter a Name</p>";
+      else {
+        app.post("/login", passport.authenticate("local"), function (req, res) {
+          res.redirect("/users/" + req.user.username);
+        });
+      }
+    }
+
+    function create() {}
+  </script>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+          <h1 class="text-center">IM Login</h1>
+          <p class="text-center">Please enter your username and password</p>
+          <div id="error-container"></div>
+          <div id="login-card" class="card">
+             <br>
+            <form action="/login" method="post">
+              <div class="text-center">
+                <label>Username:</label>
+                <input type="text" name="username" />
+              </div>
+              <div class="text-center">
+                <label>Password:</label>
+                <input type="password" name="passwd" />
+              </div>
+              <div class="text-center">
+                <input type="submit" value="Log In" />
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
