@@ -21,7 +21,7 @@ npm install
 If you are connecting to a local mongodb instance, create a .env file with the line
 
 ```javascript
-  DATABASE="mongodb://localhost/IMProject"
+DATABASE="mongodb://localhost/IMProject"
 ```
 
 then to start the server this on the command line 
