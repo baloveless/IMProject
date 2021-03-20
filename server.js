@@ -82,8 +82,8 @@ if (!isProduction) {
 
 app.post('/login', passport.authenticate('local'),
    function (req, res) {
-      console.log("Login request received");
-      res.redirect('/api/users');
+      console.log("Login request accepted");
+      res.redirect('/chatlist');
 });
 
 app.get('/', function(req, res) {

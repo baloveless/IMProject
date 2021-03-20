@@ -20,21 +20,6 @@
   </head>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    var socket = io(); // connection
-
-    function login() {
-      document.getElementById("name").value;
-      if (name === "")
-        document.getElementById("error-container").innerHTML =
-          "<p>Please Enter a Name</p>";
-      else {
-        app.post("/login", passport.authenticate("local"), function (req, res) {
-          res.redirect("/users/" + req.user.username);
-        });
-      }
-    }
-
-    function create() {}
   </script>
 
   <body>

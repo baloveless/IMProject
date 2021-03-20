@@ -10,15 +10,21 @@ passport.use(new LocalStrategy({
   usernameField: 'user[email]',
   passwordField: 'user[password]',
 }, function(email, password, done) {
-    Users.findOne({ email }, function(err, user) {
-      if (err) { return done(err); }
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
-      }
-      if (!user.validatePassword(password)) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
+    Users.findOne({ email: email }).then(( user) => { 
+    if (!user || !user.validatePassword(password)) {
+      return done(null, false, { message: 'Invalid email or password.' });
+    } else 
       return done(null, user);
-    });
+    }).catch(done);
   }
 ));
+
+passport.serializeUser(function (user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function (user, done) {
+  Users.findById(id, function (err, user) {
+    done(err, user);
+  });
+});

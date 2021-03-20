@@ -9,6 +9,7 @@
     "express": "^4.17.1",
     "express-jwt": "^6.0.0",
     "express-session": "^1.17.1",
+    "foobar": "^1.1.0",
     "mongodb": "^3.6.4",
     "mongoose": "^5.11.20",
     "morgan": "^1.10.0",
