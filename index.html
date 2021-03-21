@@ -20,6 +20,26 @@
   </head>
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    function Submit() {
+      var user = {'user': {'email': document.getElementById("email").value,
+            'password': document.getElementById("password").value,}}
+      var headers = new Headers();
+      headers.append("Content-Type", "application/json");
+      var json = JSON.stringify(user);
+
+      var success = new Request("/chatlist", {
+        method: "GET",
+        headers: new Headers(),
+      });
+
+      fetch("/api/users/login", {
+        method: "POST",
+        body: json,
+        headers: headers,
+      }).then((response) => {
+        console.log(JSON.stringify(response));
+      });
+    }
   </script>
 
   <body>
@@ -27,21 +47,26 @@
       <div class="row">
         <div class="col-md-6 offset-md-3 col-sm-12">
           <h1 class="text-center">IM Login</h1>
-          <p class="text-center">Please enter your username and password</p>
+          <p class="text-center">Please enter your email and password</p>
           <div id="error-container"></div>
           <div id="login-card" class="card">
-             <br>
-            <form action="/login" method="post">
+            <br />
+            <form>
               <div class="text-center">
-                <label>Username:</label>
-                <input type="text" name="username" />
-              </div>
-              <div class="text-center">
+                <label>Email:</label>
+                <input type="text" name="email" id="email" />
+                <br />
                 <label>Password:</label>
-                <input type="password" name="passwd" />
-              </div>
-              <div class="text-center">
-                <input type="submit" value="Log In" />
+                <input type="password" name="password" id="password" />
+                <br />
+                <button
+                  type="button"
+                  name="button"
+                  onclick="Submit()"
+                  class="btn btn-primary btn-lg"
+                >
+                  Login
+                </button>
               </div>
             </form>
           </div>

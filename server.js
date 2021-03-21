@@ -57,7 +57,7 @@ mongoose.connection.once('open', () => {
 });
 
 if (!isProduction) {
-   app.use((err, req, res) => {
+   app.use((err, req, res, next) => {
       res.status(err.status || 500);
       res.json({
          errors: {
@@ -68,22 +68,14 @@ if (!isProduction) {
    });
 }
 
-// app.use((err, req, res) => {
-   // res.status(err.status || 500);
-   // res.json({
-      // errors: {
-         // message: err.message,
-         // error: {},
-      // },
-   // });
-// });
-
-
-
-app.post('/login', passport.authenticate('local'),
-   function (req, res) {
-      console.log("Login request accepted");
-      res.redirect('/chatlist');
+app.use((err, req, res, next) => {
+   res.status(err.status || 500);
+   res.json({
+      errors: {
+         message: err.message,
+         error: {},
+      },
+   });
 });
 
 app.get('/', function(req, res) {
