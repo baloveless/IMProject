@@ -1,92 +1,113 @@
-const mongoose = require('mongoose');
-const passport = require('passport');
-const router = require('express').Router();
-const auth = require('../auth');
-require('../../models/users');
-const Users = mongoose.model('users');
+const mongoose = require("mongoose");
+const passport = require("passport");
+const router = require("express").Router();
+const auth = require("../auth");
+require("../../models/users");
+const Users = mongoose.model("users");
 
 //POST new user route (optional, everyone has access)
-router.post('/', auth.optional, (req, res, next) => {
-  console.log(JSON.stringify(req.json()));
-  const { body: { user } } = req;
+router.post("/", auth.optional, (req, res, next) => {
+  const {
+    body: { user },
+  } = req;
 
   console.log(JSON.stringify(user));
 
-  if(!user.email) {
+  if (!user.email) {
     return res.status(422).json({
       errors: {
-        email: 'is required',
+        email: "is required",
       },
     });
   }
 
-  if(!user.password) {
+  if (!user.password) {
     return res.status(422).json({
       errors: {
-        password: 'is required',
+        password: "is required",
       },
     });
   }
 
-  const finalUser = new Users(user);
+  Users.findOne({ email: user.email }, (err, user) => {
+    if (user !== undefined) { // user already exists
+      console.log("Found a user");
+      return res.status(422).json({
+        errors: {
+          email: "has an account",
+        },
+      });
+    } else { // can create user 
 
-  finalUser.setPassword(user.password);
+      const finalUser = new Users(user);
 
-  return finalUser.save()
-    .then(() => res.json({ user: finalUser.toAuthJSON() }));
+      finalUser.setPassword(user.password);
+
+      return finalUser
+        .save()
+        .then(() => res.json({ user: finalUser.toAuthJSON() }));
+    }
+  });
 });
 
 //POST login route (optional, everyone has access)
-router.post('/login', auth.optional, (req, res, next) => {
-  const { body: { user } } = req;
-  if (user === undefined)
-    console.log('User undefined');
+router.post("/login", auth.optional, (req, res, next) => {
+  const {
+    body: { user },
+  } = req;
+  if (user === undefined) console.log("User undefined");
 
   console.log(JSON.stringify(user));
-  if(!user.email) {
+  if (!user.email) {
     return res.status(422).json({
       errors: {
-        email: 'is required',
+        email: "is required",
       },
     });
   }
 
-  if(!user.password) {
+  if (!user.password) {
     return res.status(422).json({
       errors: {
-        password: 'is required',
+        password: "is required",
       },
     });
   }
 
-  return passport.authenticate('local', { session: false }, (err, passportUser, info) => {
-    if(err) {
-      return next(err);
+  return passport.authenticate(
+    "local",
+    { session: false },
+    (err, passportUser, info) => {
+      if (err) {
+        return next(err);
+      }
+
+      if (passportUser) {
+        const user = passportUser;
+        user.token = passportUser.generateJWT();
+
+        return res.json({ user: user.toAuthJSON() });
+      }
+
+      return status(400).info;
     }
-
-    if(passportUser) {
-      const user = passportUser;
-      user.token = passportUser.generateJWT();
-
-      return res.json({ user: user.toAuthJSON() });
-    }
-
-    return status(400).info;
-  })(req, res, next);
+  )(req, res, next);
 });
 
 //GET current route (required, only authenticated users have access)
-router.get('/current', auth.required, (req, res, next) => {
-  const { payload: { id } } = req;
+router.get("/current", auth.required, (req, res, next) => {
+  console.log(req);
+  const {
+    payload: { id },
+  } = req;
 
-  return Users.findById(id)
-    .then((user) => {
-      if(!user) {
-        return res.sendStatus(400);
-      }
+  return Users.findById(id).then((user) => {
+    if (!user) {
+      return res.sendStatus(400);
+    }
 
-      return res.json({ user: user.toAuthJSON() });
-    });
+    return res.json({ user: user.toAuthJSON() });
+  });
 });
 
 module.exports = router;

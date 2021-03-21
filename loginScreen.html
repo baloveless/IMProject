@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+      crossorigin="anonymous"
+    />
+    <title>IMProject</title>
+    <style>
+      #login-card {
+        height: 150px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    function onError(message){
+      document.getElementById('error-container').innerHTML = message;
+    }
+
+    function Submit() {
+      var user = {'user': {'email': document.getElementById("email").value,
+            'password': document.getElementById("password").value,}};
+    
+      var headers = new Headers();
+      headers.append("Content-Type", "application/json");
+      var json = JSON.stringify(user);
+
+      var success = new Request("/chatlist", {
+        method: "GET",
+        headers: new Headers(),
+      });
+
+      fetch("/api/users/login", {
+        method: "POST",
+        body: json,
+        headers: headers,
+      })
+      .then(response => response.json()) // make response json
+      .then(json => { // now token to header. 
+        console.log(json);
+        if (json.errors === undefined)
+          document.cookie = `token=${json.user.token}`
+        else 
+          onError('password ' + json.errors.password)
+      });
+    }
+  </script>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+          <h1 class="text-center">IM Login</h1>
+          <p class="text-center">Please enter your email and password</p>
+          <div id="error-container" class="text-center"></div>
+          <div id="login-card" class="card">
+            <br />
+            <form>
+              <div class="text-center">
+                <label>Email:</label>
+                <input type="text" name="email" id="email" />
+                <br />
+                <label>Password:</label>
+                <input type="password" name="password" id="password" />
+                <br />
+                <button
+                  type="button"
+                  name="button"
+                  onclick="Submit()"
+                  class="btn btn-primary btn-lg"
+                >
+                  Login
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

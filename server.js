@@ -82,6 +82,10 @@ app.get('/', function(req, res) {
    res.sendFile(__dirname + '/index.html');
 });
 
+app.get('/login', function(req, res) {
+   res.sendFile(__dirname + '/loginScreen.html');
+});
+
 app.get('/test', function(req, res) {
    res.sendFile(__dirname + '/test.html');
 });

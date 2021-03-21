@@ -25,7 +25,7 @@ userSchema.methods.validatePassword = function (password) {
 userSchema.methods.generateJWT = function () {
 	const today = new Date();
 	const expirationDate = new Date(today);
-	expirationDate.setDate(today.getDate() + 60);
+	expirationDate.setDate(today.getDate() + 7); // tokens last for 1 week
 
 	return jwt.sign({
 		email: this.email,
@@ -37,7 +37,7 @@ userSchema.methods.generateJWT = function () {
 userSchema.methods.toAuthJSON = function () {
 	return {
 		email: this.email,
-		_id: this._id,
+		id: this._id,
 		token: this.generateJWT(),
 	};
 };

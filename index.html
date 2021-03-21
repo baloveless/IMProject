@@ -18,60 +18,39 @@
       }
     </style>
   </head>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    function Submit() {
-      var user = {'user': {'email': document.getElementById("email").value,
-            'password': document.getElementById("password").value,}}
-      var headers = new Headers();
-      headers.append("Content-Type", "application/json");
-      var json = JSON.stringify(user);
-
-      var success = new Request("/chatlist", {
-        method: "GET",
-        headers: new Headers(),
-      });
-
-      fetch("/api/users/login", {
-        method: "POST",
-        body: json,
-        headers: headers,
-      }).then((response) => {
-        console.log(JSON.stringify(response));
-      });
-    }
-  </script>
-
   <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6 offset-md-3 col-sm-12">
-          <h1 class="text-center">IM Login</h1>
-          <p class="text-center">Please enter your email and password</p>
-          <div id="error-container"></div>
-          <div id="login-card" class="card">
-            <br />
-            <form>
-              <div class="text-center">
-                <label>Email:</label>
-                <input type="text" name="email" id="email" />
-                <br />
-                <label>Password:</label>
-                <input type="password" name="password" id="password" />
-                <br />
-                <button
-                  type="button"
-                  name="button"
-                  onclick="Submit()"
-                  class="btn btn-primary btn-lg"
-                >
-                  Login
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div id="error-container" class="text-center"></div>
   </body>
+  <script>
+    var host = 'http://localhost:3000';
+    var homePage = host+'/login';
+    function onError(message) {
+      document.getElementById("error-container").innerHTML = message;
+    }
+
+    function hasToken() {
+      var token = document.cookie.split("=")[1];
+      var headers = new Headers();
+      console.log(document.cookie);
+      headers.append("Authorization", document.cookie);
+
+      fetch("/api/users/current", {
+        method: "GET",
+        headers: headers,
+      })
+        .then((response) => response.json()) // make response json
+        .then((json) => {
+          if (json.errors === undefined)
+            document.cookie = `token=${json.user.token}`;
+          else onError(json.errors.message);
+        });
+    }
+
+    function noToken() {
+      window.location = homePage;
+    }
+
+    if (document.cookie === '') noToken();
+    else hasToken();
+  </script>
 </html>
