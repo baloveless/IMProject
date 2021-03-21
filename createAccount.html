@@ -60,7 +60,10 @@
 			.then(json => { // now token to header. 
 				console.log(json);
 				if (json.errors === undefined) {
-					document.cookie = `token=${json.user.token}`;
+					document.cookie = `Token=${json.user.token}`;
+          document.cookie = `IdToken=${json.user.id}`
+					headers.append("Authorization", document.cookie.Token);
+					console.log(headers);
 					onSuccess();
 				} else
 					onError('password ' + json.errors.password)

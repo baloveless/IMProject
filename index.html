@@ -59,23 +59,34 @@
   function onError(message) {
     document.getElementById("error-container").innerHTML = message;
   }
+  var payload = {
+    'payload': {
+      'id': document.cookie.IdToken,
+    }
+  };
 
   // renew token
   function hasToken() {
-    var token = document.cookie.split("=")[1];
-    var headers = new Headers();
-    headers.append("Authorization", document.cookie);
+    var myHeaders = new Headers();
+    var token = document.cookie.split(';')[1].replace('=', ' '); // change value in brackets to highest val always
+    console.log(token);
+    myHeaders.append("Authorization", token);
 
     fetch("/api/users/current", {
       method: "GET",
-      headers: headers,
+      headers: myHeaders,
     })
       .then((response) => response.json()) // make response json
       .then((json) => {
-        if (json.errors === undefined)
-          document.cookie = `token=${json.user.token}`;
-        else onError(json.errors.message);
-    });
+        if (json.errors === undefined) {
+          document.cookie = `Token=${json.user.token}`;
+          document.cookie = `IdToken=${json.user.id}`;
+        }
+        else {
+          document.cookie = '';
+          noToke();
+        } 
+      });
   }
 
   function noToken() {
@@ -106,11 +117,7 @@
           <h1 class="text-center">IM Project Home</h1>
           <div id="error-container" class="text-center"></div>
 
-          <!Ideas for things on the home page:
-            * recent chats
-            * Show user status  
-            * welcome message
-          />
+          <!Ideas for things on the home page: * recent chats * Show user status * welcome message />
         </div>
       </div>
     </div>

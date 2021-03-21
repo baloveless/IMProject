@@ -40,6 +40,11 @@ localhost:3000
 
 Overall the goal is to first create a proper backend with automated testing implemented by using postman. 
 
-Login Functions: Hoping to have this working correctly by 3/27/2021
+Login Testing: Hoping to have these implemented by 3/27/2021
 
 Next goal will be the functionality for creating a friends list which will be used as a jumping off point for creating chat rooms. 
+
+## History of Features
+
+3/21/2021: Basic functionality of login, create account, and token management implemented
+

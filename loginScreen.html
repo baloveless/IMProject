@@ -19,10 +19,14 @@
     document.getElementById('error-container').innerHTML = message;
   }
 
+  // change to fetch with request
+  // go to home screen
   function onSuccess() {
     window.location = home;
   }
 
+  // change to fetch with request
+  // go create user screen
   function Create() {
     window.location = create;
   }
@@ -47,8 +51,11 @@
       .then(response => response.json()) // make response json
       .then(json => { // now token to header. 
         console.log(json);
-        if (json.errors === undefined)
-          document.cookie = `token=${json.user.token}`
+        if (json.errors === undefined){
+          document.cookie = `Token=${json.user.token}`
+          document.cookie = `IdToken=${json.user.id}`
+          onSuccess();
+        }
         else
           onError('password ' + json.errors.password)
       });

@@ -1,130 +1,113 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
-      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
-      crossorigin="anonymous"
-    />
-    <title>TestSuite</title>   
-    <style>
-        #message-container{height:300px; overflow:auto}
-      </style>
-  </head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js" integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig==" crossorigin="anonymous"></script>
-  <script>
-    var socket = io();
-    var user;
-    var names = ['has some spaces', 'containsNot^_alpha&or*num', 'okay, in.Chat?!']
-    var usernames = ['Molly', 'Hank', 'Blake', 'Casey', 'Riley'];
-    var goal = names.length;
-    var ret = 0; 
-    var needsError = true; // whether the test needs 
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+    integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous" />
+  <title>TestSuite</title>
+  <style>
+    .sidenav {
+      height: 100%;
+      width: 160px;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: plum;
+      overflow-x: hidden;
+      padding-top: 20px;
+    }
+
+    .sidenav a {
+      padding: 6px 8px 6px 16px;
+      text-decoration: none;
+      font-size: 25px;
+      color: black;
+      display: block;
+    }
+
+    .sidenav a:hover {
+      color: whitesmoke;
+    }
+
+    .main {
+      margin-left: 160px;
+      padding: 0px 10px;
+    }
+
+    @media screen and (max-height: 450px) {
+      .sidenav {
+        padding-top: 15px;
+      }
+
+      .sidenav a {
+        font-size: 18px;
+      }
+    }
+
+    #message-container {
+      height: 300px;
+      overflow: auto
+    }
+  </style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"
+  integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
+  crossorigin="anonymous"></script>
+<script>
+  var socket = io();
+  var user;
+  var names = ['has some spaces', 'containsNot^_alpha&or*num', 'okay, in.Chat?!']
+  var usernames = ['Molly', 'Hank', 'Blake', 'Casey', 'Riley'];
+  var goal = names.length;
+  var ret = 0;
+  var needsError = true; // whether the test needs 
 
     // out puts error message, and adds message to message container about error. 
-    socket.on('Error', function(data) {
-      document.getElementById('error-container').innerHTML = '<b>' + data + '</b>';
-      var message = document.createElement('div');
-      message.setAttribute('class', 'chat-message');
-      message.textContent =  currTest+ " had error: "+data;
-      var messages = document.getElementById('message-container');
-      messages.appendChild(message);
-      messages.insertBefore(message, messages.firstChild);
-      if (needsError)
-        ret++;
-      if (ret >= goal)
-        complete();
-    });
 
-    // test complete, add output message to message-container. 
-    function complete(){
-      var message = document.createElement('div');
-      message.setAttribute('class', 'chat-message');
-      message.textContent =  currTest+ " has completed";
-      var messages = document.getElementById('message-container');
-      messages.appendChild(message);
-      messages.insertBefore(message, messages.firstChild)
-    }
+</script>
 
-    function createInvalidUserName(){
-      needsError = true;
-      goal = usernames.length;
-      ret = 0;
-      currTest = 'Creating invalid usernames (should fail)';
-      for (var i =0; i < names.length; i++)
-        socket.emit('createUser', names[i]);
-    }
-    
-    // intended to be ran before login existing users
-    function loginInvalidUser(){
-      needsError = true;
-      goal = usernames.length + names.length;
-      ret = 0;
-      currTest = 'Logging in invalid usernames(should fail)';
-      for (var i =0; i < usernames.length; i++)
-        socket.emit('setUsername', usernames[i]);
-      for (var i =0; i < names.length; i++)
-        socket.emit('setUsername', names[i]);
-    }
-
-    // populates accounts
-    function createAccounts(){
-      needsError = false;
-      goal = usernames.length;
-      ret = 0;
-      currTest = 'Creating valid users';
-      for (var i =0; i < usernames.length; i++)
-        socket.emit('createUser', usernames[i]);
-    }
-
-    // should be run after create accounts
-    function loginValidUsers(){
-      needsError = false;
-      goal = usernames.length;
-      ret = 0;
-      currTest = 'Logging in valid usernames';
-      for (var i =0; i < usernames.length; i++)
-        socket.emit('setUsername', usernames[i]);
-    }
-
-    // checks for completion all login tests
-    socket.on('userSet', () => {
-      if (needsError)
-      {
-        var message = document.createElement('div');
-        message.setAttribute('class', 'chat-message');
-        message.textContent =  currTest+"  at "+ ret  +" should have had an error";
-        var messages = document.getElementById('messages');
-        messages.appendChild(message);
-        messages.insertBefore(message, messages.firstChild)
-      }
-      ret++;
-      if (ret >= goal)
-        complete();
-    });
-  </script>
-  <body>
+<body>
+  <span class="border border-dark">
+    <div class="sidenav">
+      <span class="border border-dark">
+        <a href="#">Chat Test</a>
+      </span>
+      <span class="border border-dark">
+        <a href="#">****Test*****</a>
+      </span>
+      <span class="border border-dark">
+        <a href="#">****Test*****</a>
+      </span>
+    </div>
+  </span>
+  <div class="main">
     <div class="container">
       <div class="row">
         <div class="col-md-6 offset-md-3 col-sm-12">
           <h1 class="text-center">Chat Rooms</h1>
           <p class="text-center">Please Choose a chat</p>
           <div id="error-container"></div>
-          <button type="button" name="button" class = "btn btn-danger btn-block" onclick="createInvalidUserName()">Create accounts with invalid usernames</button>
-          <button type="button" name="button" class = "btn btn-danger btn-block" onclick="loginInvalidUser()">Login invalid users</button>
-          <button type="button" name="button" class = "btn btn-danger btn-block" onclick="createAccounts()">Create accounts valid usernames</button>
-          <button type="button" name="button" class = "btn btn-danger btn-block" onclick="loginValidUsers()">Logging in with valid usernames</button>
-          <div class = "card">
-            <div id = "message-container" class = "card-block">
-              <div id = "messages"></div>
+          <button type="button" name="button" class="btn btn-danger btn-block" onclick="createInvalidUserName()">Create
+            accounts with invalid usernames</button>
+          <button type="button" name="button" class="btn btn-danger btn-block" onclick="loginInvalidUser()">Login
+            invalid users</button>
+          <button type="button" name="button" class="btn btn-danger btn-block" onclick="createAccounts()">Create
+            accounts valid usernames</button>
+          <button type="button" name="button" class="btn btn-danger btn-block" onclick="loginValidUsers()">Logging in
+            with valid usernames</button>
+          <div class="card">
+            <div id="message-container" class="card-block">
+              <div id="messages"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
