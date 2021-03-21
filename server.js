@@ -42,18 +42,18 @@ if (!isProduction) {
 
 // create http server
 var http = require('http').Server(app);
-var io = require('socket.io')(http); 
+var io = require('socket.io')(http);
 
 mongoose.connect(process.env.DATABASE, {
-	useUnifiedTopology: true,
-	useNewUrlParser: true // for local connection
+   useUnifiedTopology: true,
+   useNewUrlParser: true // for local connection
 });
 mongoose.connection.on('error', (err) => {
-	console.log("Mongoose Connection error: " + err.message);
+   console.log("Mongoose Connection error: " + err.message);
 });
 
 mongoose.connection.once('open', () => {
-	console.log('Connected to Database');
+   console.log('Connected to Database');
 });
 
 if (!isProduction) {
@@ -78,34 +78,38 @@ app.use((err, req, res, next) => {
    });
 });
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
    res.sendFile(__dirname + '/index.html');
 });
 
-app.get('/login', function(req, res) {
+app.get('/login', function (req, res) {
    res.sendFile(__dirname + '/loginScreen.html');
 });
 
-app.get('/test', function(req, res) {
+app.get('/create', function (req, res) {
+   res.sendFile(__dirname + '/createAccount.html');
+});
+
+app.get('/test', function (req, res) {
    res.sendFile(__dirname + '/test.html');
 });
 
-app.get('/chatlist', function(req, res) {
+app.get('/chatlist', function (req, res) {
    res.sendFile(__dirname + '/chatlist.html');
 });
 
-app.get('/createChat', function(req, res) {
+app.get('/createChat', function (req, res) {
    res.sendFile(__dirname + '/createChat.html');
 });
 
-app.get('/chatRoom', function(req, res) {
+app.get('/chatRoom', function (req, res) {
    res.sendFile(__dirname + '/chatRoom.html');
 });
 
 
 
 io.on('connection', function (socket) {
-  // server functions here. 
+   // server functions here. 
    console.log("a user connected");
 
    socket.on('disconnect', () => {
@@ -114,6 +118,6 @@ io.on('connection', function (socket) {
 });
 
 
-http.listen(3000, function() {
+http.listen(3000, function () {
    console.log('listening on localhost:3000');
 });
