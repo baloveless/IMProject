@@ -65,10 +65,19 @@
     }
   };
 
+  function getToken(){
+    var tokens = document.cookie.split(';');
+    var i = 0;
+    while (tokens[i].includes('Id')){
+      i++;
+    }
+    return tokens[i].replace('=', ' ');
+  }
+
   // renew token
   function hasToken() {
     var myHeaders = new Headers();
-    var token = document.cookie.split(';')[1].replace('=', ' '); // change value in brackets to highest val always
+    var token = getToken();  
     console.log(token);
     myHeaders.append("Authorization", token);
 
@@ -83,8 +92,8 @@
           document.cookie = `IdToken=${json.user.id}`;
         }
         else {
-          document.cookie = '';
-          noToke();
+          //document.cookie = '';
+          //noToken();
         } 
       });
   }
