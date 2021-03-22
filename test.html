@@ -58,13 +58,33 @@
   integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
   crossorigin="anonymous"></script>
 <script>
-  var socket = io();
-  var user;
-  var names = ['has some spaces', 'containsNot^_alpha&or*num', 'okay, in.Chat?!']
-  var usernames = ['Molly', 'Hank', 'Blake', 'Casey', 'Riley'];
-  var goal = names.length;
-  var ret = 0;
-  var needsError = true; // whether the test needs 
+  var tokens = [];
+  // list of properly formatted emails. 
+  var goodEmails = ['name@website.com', 'user-at@place.com', 'baloveless@icloud.com', 'maggie@facebook.com', 'harry@local.com', 'tom@website.com', 'carlton@website.com', 'oen@website.com', 'piper@website.com', 'robert@website.com']; 
+
+  // list of improper emails
+  var badEmails = ['thisHasNoAtWebsite.com', 'ICont&^nBa#Lette%rs@website.com'] 
+
+  // using the same password for every test until the email format verification works. 
+  var password = 'test'; 
+
+  // calls a fetch, and if the status corresponds to the status of the message the test returns true
+  // email and password are the users email and password
+  function login(status, email, password){
+
+  }
+
+  // calls fetch and status is dealt with like login
+  // email and password are the users email and password
+  function create(status, email, password){
+
+  }
+
+  // calls fetch and status is dealt with like login
+  // id is the user id, and token is their JWT
+  function authLogin(status, id, token){
+
+  }
 
     // out puts error message, and adds message to message container about error. 
 
