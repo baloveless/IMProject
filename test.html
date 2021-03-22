@@ -65,7 +65,12 @@
   <script>
     var verbose = false; // for verbose testing output
     var users = [];
-    var hasAccounts = false;
+    var goal = 1000; // number of responses to wait for
+    var responses = 0; // number of responses currently in
+    var testName = '';
+    var running = false;
+    var needsError = false; // current test should return error
+    var createRan  = false; // changed to true once good emails have accounts connected
     // list of properly formatted emails.
     var goodEmails = [
       "name@website.com",
@@ -86,33 +91,61 @@
       "ICont&^nBa#Lette%rs@website.com",
     ];
 
-    // creates accounts with valid emails and password 'test'
-    function createAccounts() {
-      var hadError = loopCreate();
-      if (hadError)
-        complete(false, 'Create Accounts');
-      else 
-        complete(true, 'Create Accounts');
-    }
+    // This will check if a test has been completed every 5 seconds. 
+    setInterval(function(){
+      if (goal <= responses){
+        var error = false;
+        for (var i = 0; i < goal -1; i++){
+          if (users[i].Token === undefined){
+            error = true;
+            if (verbose)
+              onError(testName, ' at ' + goodEmails[i] +': ' + JSON.stringify(users[i]))
+          }
+        }
+        goal = 1000;
+        responses = 0;
+        if (error && needsError)
+         complete(true, testName);
+        else if (error && !needsError)
+         complete(false, testName);
+        else if (!error && !needsError)
+         complete(true, testName);
+        else
+         complete(false, testName);
+        
+        running = false; // no test running now
+      }
+    }, 5000);
 
-    // runs all fetch commands before returning 
-    // false for no error and true for errors
-    function loopCreate() {
-      var hadError = false;
+
+
+    // creates accounts with valid emails and passwords
+    function createAccounts() {
+      if (running){
+        onError('Create Accounts', 'test already running');
+        return;
+      }
+      running = true;
+      testName = 'Create Accounts';
+      responses = 0;
+      if (createRan)
+        needsError = true;
+      else 
+        needsError = false;
+      createRan = true;
+      goal = goodEmails.length
       // traverse list backwards so push can be used to 
       // add tokens and return values
-      var i = goodEmails.length -1;
-      while (i >=0) {
-        create(hasAccounts, goodEmails[i], password)
+      stop = goal;
+      for (var i = 0; i < stop; i++){
+        create(goodEmails[i], password);
       }
-      return hadError;
     }
 
-    // name is name of test, error is the error message json stringified 
     function onError(name, error) {
       var message = document.createElement("div");
       message.setAttribute("class", "chat-message");
-      message.textContent = name + " had an error " + error;
+      message.textContent = name +  ': '+ error;
       var messages = document.getElementById("messages");
       messages.appendChild(message);
       messages.insertBefore(message, messages.firstChild);
@@ -124,7 +157,7 @@
     // calls a fetch, returns true if needs error is false and there isn't an error,
     // or if needs error is true and there is an error.
     // email and password are the users email and password
-    function login(needsError, email, password) {
+    function login(email, password) {
       var user = {
         user: {
           email: email,
@@ -143,21 +176,21 @@
       })
         .then((response) => response.json())
         .then(json => {
+          console.log('before ' + responses);
+          responses++;
+          console.log('after' + responses);
           if (json.errors === undefined) {
             var pushUser = {'Token': json.user.token, 'IdToken': json.user.id};
             users.push(pushUser);
-            return testResults(false, needsError, 'Login'); // test return with out errors
           } else {
-            var pushUser = {'errors': json.errors};
+            var pushUser = json.errors;
             users.push(pushUser);
-            return testResults(false, needsError, 'Login'); // test return with out errors
           }
         });
     }
 
-    // calls fetch and status is dealt with like login
     // email and password are the users email and password
-    function create(needsError, email, password) {
+    function create(email, password) {
       var user = {
         user: {
           email: email,
@@ -176,14 +209,15 @@
       })
         .then((response) => response.json())
         .then(json => {
+          console.log('before ' + responses);
+          responses++;
+          console.log('after' + responses);
           if (json.errors === undefined) {
             var pushUser = {'Token': json.user.token, 'IdToken': json.user.id};
             users.push(pushUser);
-            return testResults(false, needsError, 'Create'); // test return with out errors
           } else {
-            var pushUser = {'errors': json.errors};
+            var pushUser = json.errors;
             users.push(pushUser);
-            return testResults(true, needsError, 'Create'); // test return with errors
           }
         });
     }
@@ -191,28 +225,6 @@
     // calls fetch and status is dealt with like login
     // id is the user id, and token is their JWT
     function authLogin(status, id, token) {}
-
-    // calls complete for individual tests, errors is if the system had errors,
-    // needsErrors is true if the test needed errors, and name is the tests name
-    function testResults(errors, needsError, name) {
-      if (!needsError) { // doesn't need errors
-        if (errors){
-          if (verbose) complete(false, name);
-          return false // has errors
-        }else {
-          if (verbose) complete(true, name);
-          return true // doesn't have errors
-        }
-      } else { // needs errors
-        if (errors){
-          if (verbose) complete(true, name);
-          return true;
-        }else {
-          if (verbose) complete(false, name);
-          return false;
-        }
-      }
-    }
 
     // adds output message to the box
     function complete(passed, name) {
@@ -273,8 +285,9 @@
       <div class="container">
         <div class="row">
           <div class="col-md-6 offset-md-3 col-sm-12">
-            <h1 class="text-center">Chat Rooms</h1>
-            <p class="text-center">Please Choose a chat</p>
+            <h1 class="text-center">Test Suite</h1>
+            <p class="text-center">Please Choose a test to execute</p>
+            <p class="text-center">For descriptions of each test go to the descriptions tab</p>
             <div id="error-container"></div>
             <button
               type="button"
