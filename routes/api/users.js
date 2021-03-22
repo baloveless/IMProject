@@ -29,8 +29,9 @@ router.post("/", auth.optional, (req, res, next) => {
     });
   }
 
-  Users.findOne({ email: user.email }, (err, user) => {
-    if (user !== undefined) { // user already exists
+  Users.findOne({ email: user.email }, (err, existingUser) => {
+    console.log(existingUser);
+    if (existingUser !== null) { // user already exists
       console.log("Found a user");
       return res.status(422).json({
         errors: {

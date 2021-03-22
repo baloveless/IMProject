@@ -1,133 +1,329 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
-    integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous" />
-  <title>TestSuite</title>
-  <style>
-    .sidenav {
-      height: 100%;
-      width: 160px;
-      position: fixed;
-      z-index: 1;
-      top: 0;
-      left: 0;
-      background-color: plum;
-      overflow-x: hidden;
-      padding-top: 20px;
-    }
-
-    .sidenav a {
-      padding: 6px 8px 6px 16px;
-      text-decoration: none;
-      font-size: 25px;
-      color: black;
-      display: block;
-    }
-
-    .sidenav a:hover {
-      color: whitesmoke;
-    }
-
-    .main {
-      margin-left: 160px;
-      padding: 0px 10px;
-    }
-
-    @media screen and (max-height: 450px) {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+      crossorigin="anonymous"
+    />
+    <title>TestSuite</title>
+    <style>
       .sidenav {
-        padding-top: 15px;
+        height: 100%;
+        width: 160px;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        background-color: plum;
+        overflow-x: hidden;
+        padding-top: 20px;
       }
 
       .sidenav a {
-        font-size: 18px;
+        padding: 6px 8px 6px 16px;
+        text-decoration: none;
+        font-size: 25px;
+        color: black;
+        display: block;
+      }
+
+      .sidenav a:hover {
+        color: whitesmoke;
+      }
+
+      .main {
+        margin-left: 160px;
+        padding: 0px 10px;
+      }
+
+      @media screen and (max-height: 450px) {
+        .sidenav {
+          padding-top: 15px;
+        }
+
+        .sidenav a {
+          font-size: 18px;
+        }
+      }
+
+      #message-container {
+        height: 300px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"
+    integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
+    crossorigin="anonymous"
+  ></script>
+  <script>
+    var verbose = false; // for verbose testing output
+    var users = [];
+    var hasAccounts = false;
+    // list of properly formatted emails.
+    var goodEmails = [
+      "name@website.com",
+      "user-at@place.com",
+      "baloveless@icloud.com",
+      "maggie@facebook.com",
+      "harry@local.com",
+      "tom@website.com",
+      "carlton@website.com",
+      "oen@website.com",
+      "piper@website.com",
+      "robert@website.com",
+    ];
+
+    // list of improper emails
+    var badEmails = [
+      "thisHasNoAtWebsite.com",
+      "ICont&^nBa#Lette%rs@website.com",
+    ];
+
+    // creates accounts with valid emails and password 'test'
+    function createAccounts() {
+      var hadError = loopCreate();
+      if (hadError)
+        complete(false, 'Create Accounts');
+      else 
+        complete(true, 'Create Accounts');
+    }
+
+    // runs all fetch commands before returning 
+    // false for no error and true for errors
+    function loopCreate() {
+      var hadError = false;
+      // traverse list backwards so push can be used to 
+      // add tokens and return values
+      var i = goodEmails.length -1;
+      while (i >=0) {
+        create(hasAccounts, goodEmails[i], password)
+      }
+      return hadError;
+    }
+
+    // name is name of test, error is the error message json stringified 
+    function onError(name, error) {
+      var message = document.createElement("div");
+      message.setAttribute("class", "chat-message");
+      message.textContent = name + " had an error " + error;
+      var messages = document.getElementById("messages");
+      messages.appendChild(message);
+      messages.insertBefore(message, messages.firstChild);
+    }
+
+    // using the same password for every test until the email format verification works.
+    var password = "test";
+
+    // calls a fetch, returns true if needs error is false and there isn't an error,
+    // or if needs error is true and there is an error.
+    // email and password are the users email and password
+    function login(needsError, email, password) {
+      var user = {
+        user: {
+          email: email,
+          password: password,
+        },
+      }; // user to add
+
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+      var json = JSON.stringify(user); // create string of user json
+
+      fetch("/api/users/login", {
+        method: "POST",
+        headers: myHeaders,
+        body: json,
+      })
+        .then((response) => response.json())
+        .then(json => {
+          if (json.errors === undefined) {
+            var pushUser = {'Token': json.user.token, 'IdToken': json.user.id};
+            users.push(pushUser);
+            return testResults(false, needsError, 'Login'); // test return with out errors
+          } else {
+            var pushUser = {'errors': json.errors};
+            users.push(pushUser);
+            return testResults(false, needsError, 'Login'); // test return with out errors
+          }
+        });
+    }
+
+    // calls fetch and status is dealt with like login
+    // email and password are the users email and password
+    function create(needsError, email, password) {
+      var user = {
+        user: {
+          email: email,
+          password: password,
+        },
+      }; // user to add
+
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+      var json = JSON.stringify(user); // create string of user json
+
+      fetch("/api/users", {
+        method: "POST",
+        headers: myHeaders,
+        body: json,
+      })
+        .then((response) => response.json())
+        .then(json => {
+          if (json.errors === undefined) {
+            var pushUser = {'Token': json.user.token, 'IdToken': json.user.id};
+            users.push(pushUser);
+            return testResults(false, needsError, 'Create'); // test return with out errors
+          } else {
+            var pushUser = {'errors': json.errors};
+            users.push(pushUser);
+            return testResults(true, needsError, 'Create'); // test return with errors
+          }
+        });
+    }
+
+    // calls fetch and status is dealt with like login
+    // id is the user id, and token is their JWT
+    function authLogin(status, id, token) {}
+
+    // calls complete for individual tests, errors is if the system had errors,
+    // needsErrors is true if the test needed errors, and name is the tests name
+    function testResults(errors, needsError, name) {
+      if (!needsError) { // doesn't need errors
+        if (errors){
+          if (verbose) complete(false, name);
+          return false // has errors
+        }else {
+          if (verbose) complete(true, name);
+          return true // doesn't have errors
+        }
+      } else { // needs errors
+        if (errors){
+          if (verbose) complete(true, name);
+          return true;
+        }else {
+          if (verbose) complete(false, name);
+          return false;
+        }
       }
     }
 
-    #message-container {
-      height: 300px;
-      overflow: auto
+    // adds output message to the box
+    function complete(passed, name) {
+      var message = document.createElement("div");
+      message.setAttribute("class", "chat-message");
+      message.textContent = name + " has ";
+      if (passed) message.textContent += "PASSED";
+      else message.textContent +="FAILED";
+      var messages = document.getElementById("messages");
+      messages.appendChild(message);
+      messages.insertBefore(message, messages.firstChild);
     }
-  </style>
-</head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"
-  integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
-  crossorigin="anonymous"></script>
-<script>
-  var tokens = [];
-  // list of properly formatted emails. 
-  var goodEmails = ['name@website.com', 'user-at@place.com', 'baloveless@icloud.com', 'maggie@facebook.com', 'harry@local.com', 'tom@website.com', 'carlton@website.com', 'oen@website.com', 'piper@website.com', 'robert@website.com']; 
+   
+    
 
-  // list of improper emails
-  var badEmails = ['thisHasNoAtWebsite.com', 'ICont&^nBa#Lette%rs@website.com'] 
+    // includes output for each individual test
+    function verboseOn() {
+      var ver = document.getElementById("verboseOff");
+      if (ver === undefined) return;
+      else {
+        ver.className = "btn btn-primary btn-block";
+        ver.innerText = "Disable Verbose Testing";
+        ver.setAttribute("onClick", "javascript: verboseOff();");
+        ver.id = "verboseOn";
+        verbose = true;
+      }
+    }
 
-  // using the same password for every test until the email format verification works. 
-  var password = 'test'; 
+    // excludes output for each individual test
+    function verboseOff() {
+      var ver = document.getElementById("verboseOn");
+      if (ver === undefined) return;
+      else {
+        ver.className = "btn btn-secondary btn-block";
+        ver.innerText = "Enable Verbose Testing";
+        ver.setAttribute("onClick", "javascript: verboseOn();");
+        ver.id = "verboseOff";
+        verbose = false;
+      }
+    }
+  </script>
 
-  // calls a fetch, and if the status corresponds to the status of the message the test returns true
-  // email and password are the users email and password
-  function login(status, email, password){
-
-  }
-
-  // calls fetch and status is dealt with like login
-  // email and password are the users email and password
-  function create(status, email, password){
-
-  }
-
-  // calls fetch and status is dealt with like login
-  // id is the user id, and token is their JWT
-  function authLogin(status, id, token){
-
-  }
-
-    // out puts error message, and adds message to message container about error. 
-
-</script>
-
-<body>
-  <span class="border border-dark">
-    <div class="sidenav">
-      <span class="border border-dark">
-        <a href="#">Chat Test</a>
-      </span>
-      <span class="border border-dark">
-        <a href="#">****Test*****</a>
-      </span>
-      <span class="border border-dark">
-        <a href="#">****Test*****</a>
-      </span>
-    </div>
-  </span>
-  <div class="main">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6 offset-md-3 col-sm-12">
-          <h1 class="text-center">Chat Rooms</h1>
-          <p class="text-center">Please Choose a chat</p>
-          <div id="error-container"></div>
-          <button type="button" name="button" class="btn btn-danger btn-block" onclick="createInvalidUserName()">Create
-            accounts with invalid usernames</button>
-          <button type="button" name="button" class="btn btn-danger btn-block" onclick="loginInvalidUser()">Login
-            invalid users</button>
-          <button type="button" name="button" class="btn btn-danger btn-block" onclick="createAccounts()">Create
-            accounts valid usernames</button>
-          <button type="button" name="button" class="btn btn-danger btn-block" onclick="loginValidUsers()">Logging in
-            with valid usernames</button>
-          <div class="card">
-            <div id="message-container" class="card-block">
-              <div id="messages"></div>
+  <body>
+    <span class="border border-dark">
+      <div class="sidenav">
+        <span class="border border-dark">
+          <a href="#">Chat Test</a>
+        </span>
+        <span class="border border-dark">
+          <a href="#">****Test*****</a>
+        </span>
+        <span class="border border-dark">
+          <a href="#">****Test*****</a>
+        </span>
+      </div>
+    </span>
+    <div class="main">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 offset-md-3 col-sm-12">
+            <h1 class="text-center">Chat Rooms</h1>
+            <p class="text-center">Please Choose a chat</p>
+            <div id="error-container"></div>
+            <button
+              type="button"
+              id="verboseOff"
+              class="btn btn-secondary btn-block"
+              onclick="verboseOn()"
+            >
+              Enable verbose testing
+            </button>
+            <button
+              type="button"
+              name="button"
+              class="btn btn-danger btn-block"
+              onclick="createInvalidUserName()"
+            >
+              Create accounts with invalid usernames
+            </button>
+            <button
+              type="button"
+              name="button"
+              class="btn btn-danger btn-block"
+              onclick="loginInvalidUser()"
+            >
+              Login invalid users
+            </button>
+            <button
+              type="button"
+              name="button"
+              class="btn btn-danger btn-block"
+              onclick="createAccounts()"
+            >
+              Create accounts valid usernames
+            </button>
+            <button
+              type="button"
+              name="button"
+              class="btn btn-danger btn-block"
+              onclick="loginValidUsers()"
+            >
+              Logging in with valid usernames
+            </button>
+            <div class="card">
+              <div id="message-container" class="card-block">
+                <div id="messages"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</body>
-
+  </body>
 </html>
