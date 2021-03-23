@@ -64,13 +64,14 @@
   ></script>
   <script>
     var verbose = false; // for verbose testing output
-    var users = [];
+    var results = []; // holds responses for invalid usernames
+    var users;
     var goal = 1000; // number of responses to wait for
     var responses = 0; // number of responses currently in
-    var testName = '';
+    var testName = "";
     var running = false;
     var needsError = false; // current test should return error
-    var createRan  = false; // changed to true once good emails have accounts connected
+    var createRan = false; // changed to true once good emails have accounts connected
     // list of properly formatted emails.
     var goodEmails = [
       "name@website.com",
@@ -89,63 +90,91 @@
     var badEmails = [
       "thisHasNoAtWebsite.com",
       "ICont&^nBa#Lette%rs@website.com",
+      "toomany@.dots.com.here",
+      "@no.name.net",
+      "cantstart@.with.a.dot.com",
+      ".emailsdontstart@with.com",
+      "*getWrong()@badcharacters.com",
+      "double..dotted@hero.com",
     ];
 
-    // This will check if a test has been completed every 5 seconds. 
-    setInterval(function(){
-      if (goal <= responses){
+    // This will check if a test has been completed every 5 seconds.
+    setInterval(function () {
+      if (goal <= responses) {
         var error = false;
-        for (var i = 0; i < goal -1; i++){
-          if (users[i].Token === undefined){
+        for (var i = 0; i < goal - 1; i++) {
+          if (results[i].Token === undefined) {
             error = true;
-            if (verbose)
-              onError(testName, ' at ' + goodEmails[i] +': ' + JSON.stringify(users[i]))
           }
+
+          if (verbose)
+            onError(
+              testName,
+              " at " + goodEmails[i] + ": " + JSON.stringify(results[i])
+            );
         }
+        if (testName === "Create Accounts" && users === undefined && !errors)
+          users = results;
+        // save results if the accounts are not yet saved, and no errors
+        else if (
+          testName === "Login Valids Users" &&
+          users === undefined &&
+          !errors
+        )
+          users = results; // save results if the accounts were created, but not yet saved, and no errors
+        results = []; // clear results
         goal = 1000;
         responses = 0;
-        if (error && needsError)
-         complete(true, testName);
-        else if (error && !needsError)
-         complete(false, testName);
-        else if (!error && !needsError)
-         complete(true, testName);
-        else
-         complete(false, testName);
-        
+        if (error && needsError) complete(true, testName);
+        else if (error && !needsError) complete(false, testName);
+        else if (!error && !needsError) complete(true, testName);
+        else complete(false, testName);
+
         running = false; // no test running now
       }
-    }, 5000);
-
-
+    }, 1000);
 
     // creates accounts with valid emails and passwords
     function createAccounts() {
-      if (running){
-        onError('Create Accounts', 'test already running');
+      if (running) {
+        onError(
+          "Create Accounts",
+          "can't run:" + testName + " already running"
+        );
         return;
       }
       running = true;
-      testName = 'Create Accounts';
+      testName = "Create Accounts";
       responses = 0;
-      if (createRan)
-        needsError = true;
-      else 
-        needsError = false;
+      if (createRan) needsError = true;
+      else needsError = false;
       createRan = true;
-      goal = goodEmails.length
-      // traverse list backwards so push can be used to 
+      goal = goodEmails.length;
+      // traverse list backwards so push can be used to
       // add tokens and return values
-      stop = goal;
-      for (var i = 0; i < stop; i++){
+      for (var i = 0; i < goal; i++) {
         create(goodEmails[i], password);
+      }
+    }
+
+    function loginAll() {
+      if (running) {
+        onError("Login all", "can't run:" + testName + " already running");
+        return;
+      }
+      running = true;
+      testName = "Login Valid Users";
+      responses = 0;
+      goal = goodEmails.length;
+      for (var i = 0; i < goal; i++) {
+        login(goodEmails[i], password);
       }
     }
 
     function onError(name, error) {
       var message = document.createElement("div");
       message.setAttribute("class", "chat-message");
-      message.textContent = name +  ': '+ error;
+      message.textContent = name + ": " + error;
       var messages = document.getElementById("messages");
       messages.appendChild(message);
       messages.insertBefore(message, messages.firstChild);
@@ -175,16 +204,14 @@
         body: json,
       })
         .then((response) => response.json())
-        .then(json => {
-          console.log('before ' + responses);
+        .then((json) => {
           responses++;
-          console.log('after' + responses);
           if (json.errors === undefined) {
-            var pushUser = {'Token': json.user.token, 'IdToken': json.user.id};
-            users.push(pushUser);
+            var pushUser = { Token: json.user.token, IdToken: json.user.id };
+            results.push(pushUser);
           } else {
             var pushUser = json.errors;
-            users.push(pushUser);
+            results.push(pushUser);
           }
         });
     }
@@ -208,16 +235,14 @@
         body: json,
       })
         .then((response) => response.json())
-        .then(json => {
-          console.log('before ' + responses);
+        .then((json) => {
           responses++;
-          console.log('after' + responses);
           if (json.errors === undefined) {
-            var pushUser = {'Token': json.user.token, 'IdToken': json.user.id};
-            users.push(pushUser);
+            var pushUser = { Token: json.user.token, IdToken: json.user.id };
+            results.push(pushUser);
           } else {
             var pushUser = json.errors;
-            users.push(pushUser);
+            results.push(pushUser);
           }
         });
     }
@@ -232,13 +257,11 @@
       message.setAttribute("class", "chat-message");
       message.textContent = name + " has ";
       if (passed) message.textContent += "PASSED";
-      else message.textContent +="FAILED";
+      else message.textContent += "FAILED";
       var messages = document.getElementById("messages");
       messages.appendChild(message);
       messages.insertBefore(message, messages.firstChild);
     }
-   
-    
 
     // includes output for each individual test
     function verboseOn() {
@@ -258,12 +281,19 @@
       var ver = document.getElementById("verboseOn");
       if (ver === undefined) return;
       else {
-        ver.className = "btn btn-secondary btn-block";
+        ver.className = "btn btn-outline-secondary";
         ver.innerText = "Enable Verbose Testing";
         ver.setAttribute("onClick", "javascript: verboseOn();");
         ver.id = "verboseOff";
         verbose = false;
       }
+    }
+
+    // clears output window
+    function clearTests() {
+      console.log("clearing output");
+      var msgs = document.getElementById("messages");
+      msgs.textContent = "";
     }
   </script>
 
@@ -284,51 +314,69 @@
     <div class="main">
       <div class="container">
         <div class="row">
-          <div class="col-md-6 offset-md-3 col-sm-12">
+          <div class="col">
             <h1 class="text-center">Test Suite</h1>
             <p class="text-center">Please Choose a test to execute</p>
-            <p class="text-center">For descriptions of each test go to the descriptions tab</p>
+            <p class="text-center">
+              For descriptions of each test go to the descriptions tab
+            </p>
             <div id="error-container"></div>
-            <button
-              type="button"
-              id="verboseOff"
-              class="btn btn-secondary btn-block"
-              onclick="verboseOn()"
-            >
-              Enable verbose testing
-            </button>
-            <button
-              type="button"
-              name="button"
-              class="btn btn-danger btn-block"
-              onclick="createInvalidUserName()"
-            >
-              Create accounts with invalid usernames
-            </button>
-            <button
-              type="button"
-              name="button"
-              class="btn btn-danger btn-block"
-              onclick="loginInvalidUser()"
-            >
-              Login invalid users
-            </button>
-            <button
-              type="button"
-              name="button"
-              class="btn btn-danger btn-block"
-              onclick="createAccounts()"
-            >
-              Create accounts valid usernames
-            </button>
-            <button
-              type="button"
-              name="button"
-              class="btn btn-danger btn-block"
-              onclick="loginValidUsers()"
-            >
-              Logging in with valid usernames
-            </button>
+            <div class="text-center">
+              <div class="btn-group" role="group" aria-label="Basic example">
+                <button
+                  type="button"
+                  id="verboseOff"
+                  class="btn btn-outline-secondary"
+                  onclick="verboseOn()"
+                >
+                  Enable verbose testing
+                </button>
+                <button
+                  type="button"
+                  id="clear"
+                  class="btn btn-outline-primary"
+                  onclick="clearTests()"
+                >
+                  Clear Test Output
+                </button>
+              </div>
+              <br/>
+              <div class="btn-group" role="group" aria-label="Basic example">
+                <button
+                  type="button"
+                  name="button"
+                  class="btn btn-outline-danger"
+                  onclick="createInvalidUserName()"
+                >
+                  Create accounts invalid usernames
+                </button>
+                <button
+                  type="button"
+                  name="button"
+                  class="btn btn-outline-danger"
+                  onclick="loginInvalidUser()"
+                >
+                  Login invalid users
+                </button>
+                <button
+                  type="button"
+                  name="button"
+                  class="btn btn-outline-danger"
+                  onclick="createAccounts()"
+                >
+                  Create accounts valid usernames
+                </button>
+              </div>
+              <br/>
+              <button
+                type="button"
+                name="button"
+                class="btn btn-outline-danger"
+                onclick="loginAll()"
+              >
+                Logging in with valid usernames
+              </button>
+            </div>
             <div class="card">
               <div id="message-container" class="card-block">
                 <div id="messages"></div>

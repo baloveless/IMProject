@@ -30,18 +30,27 @@ router.post("/", auth.optional, (req, res, next) => {
   }
 
   Users.findOne({ email: user.email }, (err, existingUser) => {
-    console.log(existingUser);
-    if (existingUser !== null) { // user already exists
+    if (existingUser !== null) {
+      // user already exists
       console.log("Found a user");
       return res.status(422).json({
         errors: {
           email: "has an account",
         },
       });
-    } else { // can create user 
-
+    } else {
+      // can create user
       const finalUser = new Users(user);
+      // check if email is malformed
+      if (!finalUser.checkEmail(user.email)) {
+        return res.status(422).json({
+          errors: {
+            email: "is malformed",
+          },
+        });
+      }
 
+      // if not malformed okay to save finalUser and send response
       finalUser.setPassword(user.password);
 
       return finalUser

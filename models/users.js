@@ -10,6 +10,15 @@ const userSchema = new mongoose.Schema({
 	chats: [String]
 });
 
+// checks if the users email is formatted properly
+userSchema.methods.checkEmail = function (email) {
+	var format = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+	if (format.test(email))
+		return true;
+	else
+		return false;
+};
+
 // creates and stores hashed password
 userSchema.methods.setPassword = function (password) {
 	this.salt = crypto.randomBytes(16).toString('hex');
