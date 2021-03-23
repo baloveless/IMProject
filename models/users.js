@@ -7,8 +7,10 @@ const userSchema = new mongoose.Schema({
 	email: String,
 	hash: String,
 	salt: String,
+	friends: [String],
 	chats: [String]
 });
+
 
 // checks if the users email is formatted properly
 userSchema.methods.checkEmail = function (email) {

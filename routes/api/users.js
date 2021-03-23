@@ -111,11 +111,34 @@ router.get("/current", auth.required, (req, res, next) => {
   } = req;
 
   return Users.findById(id).then((user) => {
-    if (!user) {
+    if (!user) 
       return res.sendStatus(400);
-    }
 
     return res.json({ user: user.toAuthJSON() });
+  });
+});
+
+router.get("/current/friends", auth.required, (req, res, next) => {
+  const {
+    payload: { id },
+  } = req;
+  return Users.findById(id).then((user) => {
+    if (!user) 
+      return res.sendStatus(400);
+    
+    //return res.json({friends: user.})
+  });
+});
+
+// deletes current user
+router.delete("/current", auth.required, (req, res, next) => {
+  const {
+    payload: { id },
+  } = req;
+  return Users.findByIdAndDelete(id).then((user) => {
+    if (!user)
+      return res.sendStatus(400);
+    return res.json({response: "User deleted"})
   });
 });
 
