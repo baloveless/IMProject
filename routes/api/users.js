@@ -29,7 +29,17 @@ router.post("/", auth.optional, (req, res, next) => {
     });
   }
 
-  Users.findOne({ email: user.email }, (err, existingUser) => {
+  if (!user.username)
+  {
+    return res.status(422).json({
+      errors: {
+        username: "is required",
+      }
+    });
+  };
+
+  // check database for existing user
+  Users.findOne({ email: user.email, username: user.username}, (err, existingUser) => {
     if (existingUser !== null) {
       // user already exists
       console.log("Found a user");
@@ -47,6 +57,14 @@ router.post("/", auth.optional, (req, res, next) => {
           errors: {
             email: "is malformed",
           },
+        });
+      }
+      // check is username is malformed
+      if (!finalUser.checkUserName(user.username)) {
+          return res.status(422).json({
+            errors: {
+              username: "contains illegal characters",
+            },
         });
       }
 
@@ -99,7 +117,7 @@ router.post("/login", auth.optional, (req, res, next) => {
         return res.json({ user: user.toAuthJSON() });
       }
 
-      return status(400).info;
+      return res.sendStatus(400).info;
     }
   )(req, res, next);
 });
@@ -118,7 +136,7 @@ router.get("/current", auth.required, (req, res, next) => {
   });
 });
 
-router.get("/current/friends", auth.required, (req, res, next) => {
+router.get("/:username/friends", auth.required, (req, res, next) => {
   const {
     payload: { id },
   } = req;

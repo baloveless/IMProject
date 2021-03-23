@@ -11,6 +11,22 @@ const userSchema = new mongoose.Schema({
 	chats: [String]
 });
 
+// friend item should be an object containing a username, and
+// their id.
+userSchema.methods.addFriend = function (friend) {
+	if (friend.id === undefined || friend.username === undefined)
+		return false;
+};
+
+// accepts a username and returns true if it is properly formatted
+// and false if not 
+userSchema.methods.checkUserName = function (username) {
+	var format = /[^/w\-_.!]/g; // matches for any non alpha numeric characters
+	if (format.test(username))
+		return false;
+	else
+		return true;
+};
 
 // checks if the users email is formatted properly
 userSchema.methods.checkEmail = function (email) {

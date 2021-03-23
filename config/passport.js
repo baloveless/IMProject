@@ -7,10 +7,10 @@ require('../models/users');
 const Users = mongoose.model('users');
 
 passport.use(new LocalStrategy({
-  usernameField: 'user[email]',
+  emailField: 'user[email]', // email 
   passwordField: 'user[password]',
 }, function(email, password, done) {
-    Users.findOne({ email: email }).then(( user) => { 
+    Users.findOne({ email: email, username: email}).then(( user) => { 
     if (!user || !user.validatePassword(password)) {
       return done(null, false, { message: 'Invalid email or password.' });
     } else 

@@ -86,6 +86,19 @@
       "robert@website.com",
     ];
 
+    var goodUsernames = [
+      'Name',
+      'User',
+      'Blake',
+      'Maggie',
+      'Harry',
+      'Tom',
+      'Carlton',
+      'Oen',
+      'Piper',
+      'Robert'
+    ];
+
     // list of improper emails
     var badEmails = [
       "thisHasNoAtWebsite.com",
@@ -153,7 +166,7 @@
       // traverse list backwards so push can be used to
       // add tokens and return values
       for (var i = 0; i < goal; i++) {
-        create(goodEmails[i], password);
+        create(goodUsernames[i], goodEmails[i], password);
       }
     }
 
@@ -217,9 +230,10 @@
     }
 
     // email and password are the users email and password
-    function create(email, password) {
+    function create(username, email, password) {
       var user = {
         user: {
+          username: username,
           email: email,
           password: password,
         },

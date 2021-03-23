@@ -24,17 +24,7 @@ app.use(require('./routes'));
 
 // user created files
 require('./config/passport');
-require('./models/chat');
-require("./models/users");
-require("./models/msg");
-const Chat = mongoose.model('chat');
-const Users = mongoose.model('users');
-const Msg = mongoose.model('msg');
 
-var fs = require('fs');
-
-var AllowedUserName = /[^a-zA-Z0-9]/g;
-var AllowedChat = /[^a-zA-Z0-9!.,?]/g;
 
 if (!isProduction) {
    app.use(errorHandler());
