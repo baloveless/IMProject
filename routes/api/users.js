@@ -29,53 +29,55 @@ router.post("/", auth.optional, (req, res, next) => {
     });
   }
 
-  if (!user.username)
-  {
+  if (!user.username) {
     return res.status(422).json({
       errors: {
         username: "is required",
-      }
+      },
     });
-  };
+  }
 
   // check database for existing user
-  Users.findOne({ email: user.email, username: user.username}, (err, existingUser) => {
-    if (existingUser !== null) {
-      // user already exists
-      console.log("Found a user");
-      return res.status(422).json({
-        errors: {
-          email: "has an account",
-        },
-      });
-    } else {
-      // can create user
-      const finalUser = new Users(user);
-      // check if email is malformed
-      if (!finalUser.checkEmail(user.email)) {
+  Users.findOne(
+    { email: user.email, username: user.username },
+    (err, existingUser) => {
+      if (existingUser !== null) {
+        // user already exists
+        console.log("Found a user");
         return res.status(422).json({
           errors: {
-            email: "is malformed",
+            email: "has an account",
           },
         });
-      }
-      // check is username is malformed
-      if (!finalUser.checkUserName(user.username)) {
+      } else {
+        // can create user
+        const finalUser = new Users(user);
+        // check if email is malformed
+        if (!finalUser.checkEmail(user.email)) {
+          return res.status(422).json({
+            errors: {
+              email: "is malformed",
+            },
+          });
+        }
+        // check is username is malformed
+        if (!finalUser.checkUserName(user.username)) {
           return res.status(422).json({
             errors: {
               username: "contains illegal characters",
             },
-        });
+          });
+        }
+
+        // if not malformed okay to save finalUser and send response
+        finalUser.setPassword(user.password);
+
+        return finalUser
+          .save()
+          .then(() => res.json({ user: finalUser.toAuthJSON() }));
       }
-
-      // if not malformed okay to save finalUser and send response
-      finalUser.setPassword(user.password);
-
-      return finalUser
-        .save()
-        .then(() => res.json({ user: finalUser.toAuthJSON() }));
     }
-  });
+  );
 });
 
 //POST login route (optional, everyone has access)
@@ -129,22 +131,79 @@ router.get("/current", auth.required, (req, res, next) => {
   } = req;
 
   return Users.findById(id).then((user) => {
-    if (!user) 
-      return res.sendStatus(400);
+    if (!user) return res.sendStatus(400);
 
     return res.json({ user: user.toAuthJSON() });
   });
 });
 
+// get a users friends list. requires the payload to include the users
+// id and their jwt
 router.get("/:username/friends", auth.required, (req, res, next) => {
   const {
     payload: { id },
   } = req;
   return Users.findById(id).then((user) => {
-    if (!user) 
-      return res.sendStatus(400);
-    
-    //return res.json({friends: user.})
+    if (!user) return res.sendStatus(400);
+
+    return res.json({ friends: user.friendsList() });
+  });
+});
+
+// user item in body should contain either username or email field.
+// and the senders id ({user: {senderId, email, username}})
+router.post("/:username/friends/", auth.required, (req, res, next) => {
+  const {
+    body: { user },
+  } = req;
+  if (!user.email) {
+    return res.status(422).json({
+      errors: {
+        email: "is required",
+      },
+    });
+  }
+  // set value to a random defined value so the searches dont throw errors
+  if (!user.senderId) {
+    return res.status(422).json({
+      errors: {
+        senderId: "is required",
+      },
+    });
+  }
+
+  // figure out if friend exists
+  return Users.findOne({ email: user.email }).then((friend) => {
+    var toRequest = friend;
+    if (friend !== undefined && friend) {
+      // figure out if user requesting exists
+      return Users.findById(user.senderId).then((current) => {
+        if (user.email === current.email) {
+          return res.status(422).json({
+            errors: {
+              friend: "Can't friend yourself",
+            },
+          });
+        }
+        if (current) {
+          // adds friend to lists for both users.
+          if (!current.addFriend({ email: user.email, username: user.username, id: toRequest._id.toString(), request: true,}) ||
+            !toRequest.addFriend({ email: current.email, username: current.username, id: current._id.toString(), request: true, })) {
+            return res.status(422).json({
+              errors: {
+                user: "Friend request already sent",
+              },
+            });
+          }
+        }
+        return res.json({ friends: current.friendsList() });
+      });
+    } else
+      return res.status(422).json({
+        errors: {
+          user: "friend doesn't exist",
+        },
+      });
   });
 });
 
@@ -154,9 +213,8 @@ router.delete("/current", auth.required, (req, res, next) => {
     payload: { id },
   } = req;
   return Users.findByIdAndDelete(id).then((user) => {
-    if (!user)
-      return res.sendStatus(400);
-    return res.json({response: "User deleted"})
+    if (!user) return res.sendStatus(400);
+    return res.json({ response: "User deleted" });
   });
 });
 
