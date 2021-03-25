@@ -74,15 +74,26 @@
     return tokens[i].replace('=', ' ');
   }
 
+  function getId(){
+    var tokens = document.cookie.split(';');
+    var i = 0;
+    while (!tokens[i].includes('Id')){
+      i++;
+    }
+    return tokens[i].replace('IdToken=', '');
+  }
+
   // renew token
   function hasToken() {
     var myHeaders = new Headers();
     var token = getToken();  
     console.log(token);
     myHeaders.append("Authorization", token);
+    myHeaders.append("Content-Type", "application/json");
 
-    fetch("/api/users/current", {
+    fetch("/api/users/account/current", {
       method: "GET",
+      payload: {id: getId()}, 
       headers: myHeaders,
     })
       .then((response) => response.json()) // make response json

@@ -32,7 +32,6 @@ if (!isProduction) {
 
 // create http server
 var http = require('http').Server(app);
-var io = require('socket.io')(http);
 
 mongoose.connect(process.env.DATABASE, {
    useUnifiedTopology: true,
@@ -67,50 +66,6 @@ app.use((err, req, res, next) => {
       },
    });
 });
-
-app.get('/', function (req, res) {
-   res.sendFile(__dirname + '/index.html');
-});
-
-app.get('/login', function (req, res) {
-   res.sendFile(__dirname + '/loginScreen.html');
-});
-
-app.get('/create', function (req, res) {
-   res.sendFile(__dirname + '/createAccount.html');
-});
-
-app.get('/user\-tests', function (req, res) {
-   res.sendFile(__dirname + '/user-tests.html');
-});
-
-app.get('/friend\-tests', function (req, res) {
-   res.sendFile(__dirname + '/test.html');
-});
-
-app.get('/chatlist', function (req, res) {
-   res.sendFile(__dirname + '/chatlist.html');
-});
-
-app.get('/createChat', function (req, res) {
-   res.sendFile(__dirname + '/createChat.html');
-});
-
-app.get('/chatRoom', function (req, res) {
-   res.sendFile(__dirname + '/chatRoom.html');
-});
-
-
-
-io.on('connection', function (socket) {
-   // server functions here. 
-   console.log("a user connected");
-
-   socket.on('disconnect', () => {
-      console.log("a user disconnected");
-   })
-});
-
 
 http.listen(3000, function () {
    console.log('listening on localhost:3000');

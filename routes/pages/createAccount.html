@@ -15,7 +15,6 @@
 		}
 	</style>
 </head>
-<script src="/socket.io/socket.io.js"></script>
 <script>
 	var home = 'http://localhost:3000/';
 	var login = 'http://localhost:3000/login';
@@ -44,6 +43,7 @@
 		var user = {
 			'user': {
 				'email': document.getElementById("email").value,
+				'username': document.getElementById("username").value,
 				'password': document.getElementById("password").value,
 			}
 		};
@@ -51,7 +51,7 @@
 		var json = JSON.stringify(user);
 
 
-		fetch("/api/users", {
+		fetch("/api/users/account", {
 			method: "POST",
 			body: json,
 			headers: headers,
@@ -87,7 +87,12 @@
 								<input type="text" class="form-control form-control-lg" id="email" placeholder="example@website.com">
 							</div>
 						</div>
-
+						<div class="row mb-3">
+							<label for="colFormLabelSm" class="col-sm-2 col-form-label col-form-label-lg">Username</label>
+							<div class="col-sm-10">
+								<input type="text" class="form-control form-control-lg" id="username" placeholder="example12">
+							</div>
+						</div>
 						<div class="row mb-3">
 							<label for="colFormLabelSm" class="col-sm-2 col-form-label col-form-label-lg">Password</label>
 							<div class="col-sm-10">
