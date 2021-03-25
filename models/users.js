@@ -34,6 +34,15 @@ userSchema.methods.confirmFriendReq = function (username) {
   return true;
 };
 
+userSchema.methods.deleteFriend = function (username) {
+  if (username === undefined) return false;
+  this.friends.pull({ username: username }).then((user, err) => {
+    if (err)
+      return false
+    return true;
+  });
+};
+
 // returns users friends list without ids
 userSchema.methods.friendsList = function () {
   var friendsList = [];
@@ -48,7 +57,7 @@ userSchema.methods.friendsList = function () {
 userSchema.methods.friendRequests = function () {
   var friendsList = [];
 	this.friends.forEach((friend, i) => {
-		if (friend.request !== undefined)
+		if (friend.request !== undefined && friend.request)
     	friendsList.push({ username: friend.username, email: friend.email });
 	});
 	return friendsList;
