@@ -80,7 +80,11 @@ app.get('/create', function (req, res) {
    res.sendFile(__dirname + '/createAccount.html');
 });
 
-app.get('/test', function (req, res) {
+app.get('/user\-tests', function (req, res) {
+   res.sendFile(__dirname + '/user-tests.html');
+});
+
+app.get('/friend\-tests', function (req, res) {
    res.sendFile(__dirname + '/test.html');
 });
 
