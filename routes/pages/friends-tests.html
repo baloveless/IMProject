@@ -58,7 +58,7 @@
   integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
   crossorigin="anonymous"></script>
 <script>
-  var host = "http://localhost:3000" // replace with heroku address when necessary
+  var testUser = undefined;
   var verbose = false; // for verbose testing output
   var results = []; // holds responses for invalid usernames
   var users = undefined;
@@ -115,23 +115,40 @@
     "double..dotted@hero.com",
   ];
 
+  // using the same password for every test until the email format verification works.
+  var password = "test";
+
+  // prime user list so other functions can be run.
+  loginAll();
+
+  // clears output window
+  function clearTests() {
+    console.log("clearing output");
+    var msgs = document.getElementById("messages");
+    msgs.textContent = "";
+  }
+
   // This will check if a test has been completed every 5 seconds.
   setInterval(function () {
     if (goal <= responses) {
-      var error = false;
-      for (var i = 0; i < goal - 1; i++) {
-        if (results[i].Token === undefined) {
-          error = true;
-        }
+      if (testName === "Test User Friends List") {
+        displayFriendsList(results[0]);
+      } else {
+        var error = false;
+        for (var i = 0; i < goal - 1; i++) {
+          if (results[i].Token === undefined) {
+            error = true;
+          }
 
-        if (verbose)
-          onError(
-            testName,
-            " at " + goodEmails[i] + ": " + JSON.stringify(results[i])
-          );
+          if (verbose)
+            onError(
+              testName,
+              " at " + goodEmails[i] + ": " + JSON.stringify(results[i])
+            );
+        }
+        if (users === undefined && !error)
+          users = results;
       }
-      if (users === undefined && !error)
-        users = results;
       // save results if the accounts are not yet saved, and no errors
       results = []; // clear results
       goal = 1000;
@@ -142,7 +159,135 @@
       else complete(false, testName);
       running = false; // no test running now
     }
-  }, 1000);
+  }, 500);
+
+  // display friends list in message box.
+  function displayFriendsList(friendsList) {
+    var stop = friendsList.length;
+    for (var i = 0; i < stop; i++) {
+      var message = document.createElement("div");
+      message.setAttribute("class", "chat-message");
+      message.innerHTML = "<b>" + friendsList[i].username + "</b>" + "Email: " + friendsList[i].email;
+      if (friendsList[i].request){
+        message.innerHTML += " is <b>pending</b>";
+      }
+      var messages = document.getElementById("messages");
+      messages.appendChild(message);
+      messages.insertBefore(message, messages.firstChild);
+    };
+  }
+
+
+  // sends out friend requests to all users on good emails list from testUser
+  function sendRequests() {
+    if (running) {
+      onError("Send Requests", "can't run:" + testName + " already running");
+      return;
+    }
+    running = true; // test running
+    needsError = false; // should not have errors
+    testName = "Send Requests";
+    responses = 0;
+    goal = goodEmails.length;
+    for (var i = 0; i < goal; i++) {
+      friendRequest(goodEmails[i], goodUsernames[i], testUser);
+    }
+  }
+
+  // shows friends list of test user. 
+  function testFriendsList() {
+    if (running) {
+      onError("Test User Friends list", "can't run:" + testName + " already running");
+      return;
+    }
+    running = true; // test running
+    needsError = false; // should not have errors
+    testName = "Test User Friends List";
+    responses = 0;
+    goal = 1;
+    getFriendsList(testUser);
+  }
+  // sends a friend request from user to user with email and username passed in
+  function friendRequest(email, username, user) {
+    var user = {
+      user: {
+        senderId: user.IdToken,
+        email: email,
+        username: username,
+      },
+    }; // user to add
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Token " + user.Token);
+    var json = JSON.stringify(user); // create string of user json
+
+    fetch("/api/users/account/friends", {
+      method: "POST",
+      headers: myHeaders,
+      body: json,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        responses++;
+        if (json.errors === undefined) {
+          var pushUser = json.friends;
+          results.push(pushUser);
+        } else {
+          var pushUser = json.errors;
+          results.push(pushUser);
+        }
+      });
+  }
+
+
+
+  // fetches a users friends list
+  function getFriendsList(user) {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Token " + user.Token);
+    var json = JSON.stringify(user); // create string of user json
+
+    fetch("/api/users/account/friends", {
+      method: "GET",
+      payload: { id: user.IdToken },
+      headers: myHeaders,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        responses++;
+        if (json.errors === undefined) {
+          var pushUser = json.friends;
+          results.push(pushUser);
+        } else {
+          var pushUser = json.errors;
+          results.push(pushUser);
+        }
+      });
+  }
+
+  // out puts a message formatted by the program calling it. 
+  function onError(name, error) {
+    var message = document.createElement("div");
+    message.setAttribute("class", "chat-message");
+    message.innerHTML = "<b>" + name + "</b>" + ": " + error;
+    var messages = document.getElementById("messages");
+    messages.appendChild(message);
+    messages.insertBefore(message, messages.firstChild);
+  }
+
+  // adds output message to the box
+  function complete(passed, name) {
+    var message = document.createElement("div");
+    message.setAttribute("class", "chat-message");
+    message.innerHTML = "<b>" + name + "</b> has ";
+    if (passed) message.innerHTML += "PASSED";
+    else message.innerHTML += "FAILED";
+    var messages = document.getElementById("messages");
+    messages.appendChild(message);
+    messages.insertBefore(message, messages.firstChild);
+  }
 
   // primes list of users
   function loginAll() {
@@ -158,20 +303,10 @@
     for (var i = 0; i < goal; i++) {
       login(goodEmails[i], password);
     }
-  }
-  
-  // out puts a message formatted by the program calling it. 
-  function onError(name, error) {
-    var message = document.createElement("div");
-    message.setAttribute("class", "chat-message");
-    message.innerHTML = "<b>" + name + "</b>" + ": " + error;
-    var messages = document.getElementById("messages");
-    messages.appendChild(message);
-    messages.insertBefore(message, messages.firstChild);
+    // login with test user
+    login('baloveless12@gmail.com', password);
   }
 
-  // using the same password for every test until the email format verification works.
-  var password = "test";
 
   // copied from usertests, just used to prime list of users
   function login(email, password) {
@@ -195,8 +330,11 @@
       .then((json) => {
         responses++;
         if (json.errors === undefined) {
-          var pushUser = {email: json.user.email, Token: json.user.token, IdToken: json.user.id };
-          results.push(pushUser);
+          var pushUser = { email: json.user.email, Token: json.user.token, IdToken: json.user.id };
+          if (email != 'baloveless12@gmail.com')
+            results.push(pushUser);
+          else if (testUser === undefined)
+            testUser = pushUser;
         } else {
           var pushUser = json.errors;
           results.push(pushUser);
@@ -204,17 +342,7 @@
       });
   }
 
-   // adds output message to the box
-  function complete(passed, name) {
-    var message = document.createElement("div");
-    message.setAttribute("class", "chat-message");
-    message.innerHTML = "<b>" + name + "</b> has ";
-    if (passed) message.innerHTML += "PASSED";
-    else message.innerHTML += "FAILED";
-    var messages = document.getElementById("messages");
-    messages.appendChild(message);
-    messages.insertBefore(message, messages.firstChild);
-  }
+
 
   // includes output for each individual test
   function verboseOn() {
@@ -242,22 +370,13 @@
     }
   }
 
-  // prime user list so other functions can be run.
-  loginAll();
-
-  // clears output window
-  function clearTests() {
-    console.log("clearing output");
-    var msgs = document.getElementById("messages");
-    msgs.textContent = "";
-  }
 </script>
 
 <body>
   <span class="border border-dark">
     <div class="sidenav">
       <span class="border border-dark">
-        <a href= "/usertests">User tests</a>
+        <a href="/usertests">User tests</a>
       </span>
       <span class="border border-dark">
         <a href="#">****Test*****</a>
@@ -277,7 +396,7 @@
             For descriptions of each test go to the descriptions tab
           </p>
           <p class="text-center">
-            <b>DATABASE MUST BE POPULATED BY USERTESTS FIRST, 
+            <b>DATABASE MUST BE POPULATED BY USERTESTS FIRST,
               <br>
               RUN CREATE VALID USERS IN USERTESTS
             </b>
@@ -294,14 +413,14 @@
             </div>
             <br />
             <div class="btn-group" role="group" aria-label="Basic example">
-              <button type="button" name="button" class="btn btn-outline-danger" onclick="createInvalidEmail()">
-                Create: Invalid Emails
+              <button type="button" name="button" class="btn btn-outline-danger" onclick="sendRequests()">
+                Test User: Send Requests
               </button>
             </div>
             <br />
             <div class="btn-group" role="group" aria-label="Basic example">
-              <button type="button" name="button" class="btn btn-outline-danger" onclick="loginAll()">
-                Logging in with valid usernames
+              <button type="button" name="button" class="btn btn-outline-danger" onclick="testFriendsList()">
+                Test User: Get Friends List
               </button>
             </div>
           </div>

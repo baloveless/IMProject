@@ -49,7 +49,9 @@ userSchema.methods.friendsList = function () {
   var friendsList = [];
 	this.friends.forEach((friend, i) => {
 		if (friend.request === undefined)
-    	friendsList.push({ username: friend.username, email: friend.email });
+      friendsList.push({ username: friend.username, email: friend.email });
+    else if (friend.request === false)
+      friendsList.push({ username: friend.username, email: friend.email, request: "pending" });
 	});
 	return friendsList;
 };
