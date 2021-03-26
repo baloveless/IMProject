@@ -1,16 +1,16 @@
-## Name
+# Name
 
 Instant Messaging Project 
 
-## Authors
+# Authors
 
 Blake Loveless
 
-## Description
+# Description
 
 This is an attempt to create a functioning chat application because I want more practice working with javascript. This app requires the user to have node and mongodb installed on their device. Note that this project is still a work in progress so many features are unavailable at this time.
 
-## Installation
+# Installation
 
 In the folder you pull the repository from run
 
@@ -37,17 +37,17 @@ Once the server is running you can connect as a user by opening this on your bro
 localhost:3000
 ```
 
-## Road Map
+# Road Map
 
-# Current
+## Current
 
 Friends List: Working on creating and sending friend requests on the back end. Should be done by 3/27/2021
 
-# Next 
+## Next 
 
 Homepage: Create the front end to add friends, then translate that into the chat structure
 
-## History of Features
+# History of Features
 
 3/27/2021: User test suite complete, friend backend near complete, friend testing in progress
 
