@@ -39,13 +39,17 @@ localhost:3000
 
 ## Road Map
 
-Friends List: Working on creating and sending friend requests on the back end. Should be done by 3/25/2021
+# Current
 
-Login Testing: Hoping to have these implemented by 3/27/2021
+Friends List: Working on creating and sending friend requests on the back end. Should be done by 3/27/2021
 
-Next goal will be the functionality for creating a friends list which will be used as a jumping off point for creating chat rooms. 
+# Next 
+
+Homepage: Create the front end to add friends, then translate that into the chat structure
 
 ## History of Features
+
+3/27/2021: User test suite complete, friend backend near complete, friend testing in progress
 
 3/23/2021: User model updated with username, and friends list. API accepts friend requests. 
 
