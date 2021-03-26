@@ -58,6 +58,7 @@
   integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
   crossorigin="anonymous"></script>
 <script>
+  var host = "http://localhost:3000" // replace with heroku address when necessary
   var verbose = false; // for verbose testing output
   var results = []; // holds responses for invalid usernames
   var users = undefined;
@@ -143,30 +144,7 @@
     }
   }, 1000);
 
-  // creates accounts with valid emails and passwords
-  function createAccounts() {
-    if (running) {
-      onError(
-        "Create Accounts",
-        "can't run:" + testName + " already running"
-      );
-      return;
-    }
-    running = true;
-    testName = "Create Accounts";
-    responses = 0;
-    if (createRan) needsError = true;
-    else needsError = false;
-    createRan = true;
-    goal = goodEmails.length;
-    // traverse list backwards so push can be used to
-    // add tokens and return values
-    for (var i = 0; i < goal; i++) {
-      create(goodUsernames[i], goodEmails[i], password);
-    }
-  }
-
-  // logs in all good emails 
+  // primes list of users
   function loginAll() {
     if (running) {
       onError("Login all", "can't run:" + testName + " already running");
@@ -174,80 +152,11 @@
     }
     running = true;
     needsError = false;
-    testName = "Login Valid Users";
+    testName = "PRIME USER LIST";
     responses = 0;
     goal = goodEmails.length;
     for (var i = 0; i < goal; i++) {
       login(goodEmails[i], password);
-    }
-  }
-
-  // uses tokens received from loginall or create all and does
-  // authorized logins with them 
-  function authLoginAll() {
-    if (running) {
-      onError("Login auth", "can't run:" + testName + " already running");
-      return;
-    }
-    if (users === undefined) {
-      onError("Login auth", "can't run: needs preexisting users");
-      return;
-    }
-    needsError = false;
-    running = true;
-    testName = "Login Authorized";
-    responses = 0;
-    goal = goodEmails.length;
-    for (var i = 0; i < goal; i++) {
-      authLogin(users[i].IdToken, users[i].Token);
-    }
-  }
-
-  // attempts login with invalid usernames
-  function loginInvalidUser(){
-    if (running) {
-      onError("Login Invalid User", "can't run:" + testName + " already running");
-      return;
-    }
-    needsError = true;
-    running = true;
-    testName = "Login Invalid Users";
-    responses = 0;
-    goal = badEmails.length;
-    for (var i = 0; i < goal; i++) {
-      login(badEmails[i], password);
-    }
-  }
-
-  // attempts to creates account with invalid usernames, valid email
-  function createInvalidUserName() {
-    if (running) {
-      onError("Create: Invalid Usernames", "can't run:" + testName + " already running");
-      return;
-    }
-    needsError = true;
-    running = true;
-    testName = "Create: Invalid Usernames";
-    responses = 0;
-    goal = badUsernames.length;
-    for (var i = 0; i < goal; i++) {
-      create(badUsernames[i], "example@website.com", password);
-    }
-  }
-  
-  // attempts to creates account with invalid email, valid username
-  function createInvalidEmail() {
-    if (running) {
-      onError("Create: Invalid Email", "can't run:" + testName + " already running");
-      return;
-    }
-    needsError = true;
-    running = true;
-    testName = "Create: Invalid Email";
-    responses = 0;
-    goal = badEmails.length;
-    for (var i = 0; i < goal; i++) {
-      create("usertests", badEmails[i], password);
     }
   }
   
@@ -264,9 +173,7 @@
   // using the same password for every test until the email format verification works.
   var password = "test";
 
-  // calls a fetch, returns true if needs error is false and there isn't an error,
-  // or if needs error is true and there is an error.
-  // email and password are the users email and password
+  // copied from usertests, just used to prime list of users
   function login(email, password) {
     var user = {
       user: {
@@ -288,7 +195,7 @@
       .then((json) => {
         responses++;
         if (json.errors === undefined) {
-          var pushUser = { Token: json.user.token, IdToken: json.user.id };
+          var pushUser = {email: json.user.email, Token: json.user.token, IdToken: json.user.id };
           results.push(pushUser);
         } else {
           var pushUser = json.errors;
@@ -297,63 +204,7 @@
       });
   }
 
-  // email and password are the users email and password
-  function create(username, email, password) {
-    var user = {
-      user: {
-        username: username,
-        email: email,
-        password: password,
-      },
-    }; // user to add
-
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    var json = JSON.stringify(user); // create string of user json
-
-    fetch("/api/users/account", {
-      method: "POST",
-      headers: myHeaders,
-      body: json,
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        responses++;
-        if (json.errors === undefined) {
-          var pushUser = { Token: json.user.token, IdToken: json.user.id };
-          results.push(pushUser);
-        } else {
-          var pushUser = json.errors;
-          results.push(pushUser);
-        }
-      });
-  }
-
-  // id is the user id, and token is their JWT
-  function authLogin(id, token) {
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Authorization", "Token " + token);
-
-    fetch("/api/users/account/current", {
-      method: "GET",
-      payload: {id: id},
-      headers: myHeaders,
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        responses++;
-        if (json.errors === undefined) {
-          var pushUser = { Token: json.user.token, IdToken: json.user.id };
-          results.push(pushUser);
-        } else {
-          var pushUser = json.errors;
-          results.push(pushUser);
-        }
-      });
-  }
-
-  // adds output message to the box
+   // adds output message to the box
   function complete(passed, name) {
     var message = document.createElement("div");
     message.setAttribute("class", "chat-message");
@@ -391,6 +242,9 @@
     }
   }
 
+  // prime user list so other functions can be run.
+  loginAll();
+
   // clears output window
   function clearTests() {
     console.log("clearing output");
@@ -403,7 +257,7 @@
   <span class="border border-dark">
     <div class="sidenav">
       <span class="border border-dark">
-        <a href="/friendtests">Friend tests</a>
+        <a href= "/usertests">User tests</a>
       </span>
       <span class="border border-dark">
         <a href="#">****Test*****</a>
@@ -422,6 +276,12 @@
           <p class="text-center">
             For descriptions of each test go to the descriptions tab
           </p>
+          <p class="text-center">
+            <b>DATABASE MUST BE POPULATED BY USERTESTS FIRST, 
+              <br>
+              RUN CREATE VALID USERS IN USERTESTS
+            </b>
+          </p>
           <div id="error-container"></div>
           <div class="text-center">
             <div class="btn-group" role="group" aria-label="Basic example">
@@ -437,24 +297,11 @@
               <button type="button" name="button" class="btn btn-outline-danger" onclick="createInvalidEmail()">
                 Create: Invalid Emails
               </button>
-              <button type="button" name="button" class="btn btn-outline-danger" onclick="createInvalidUserName()">
-                Create: Invalid Usernames
-              </button>
-
-              <button type="button" name="button" class="btn btn-outline-danger" onclick="createAccounts()">
-                Create: All valid
-              </button>
             </div>
             <br />
             <div class="btn-group" role="group" aria-label="Basic example">
               <button type="button" name="button" class="btn btn-outline-danger" onclick="loginAll()">
                 Logging in with valid usernames
-              </button>
-              <button type="button" name="button" class="btn btn-outline-danger" onclick="loginInvalidUser()">
-                Login invalid users
-              </button>
-              <button type="button" name="button" class="btn btn-outline-danger" onclick="authLoginAll()">
-                Login Authorized Users
               </button>
             </div>
           </div>

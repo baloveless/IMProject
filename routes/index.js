@@ -25,6 +25,12 @@ router.get('/usertests', auth.optional, (req, res, next) => {
   res.sendFile(__dirname + '/pages/user-tests.html');
 });
 
+// get test suite: friend tests
+router.get('/friendtests', auth.optional, (req, res, next) => {
+  res.sendFile(__dirname + '/pages/friends-tests.html');
+});
+
+
 
 
 module.exports = router;

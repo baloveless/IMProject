@@ -54,8 +54,6 @@
   <div id="error-container" class="text-center"></div>
 </body>
 <script>
-  var host = 'http://localhost:3000';
-  var homePage = host + '/login';
   function onError(message) {
     document.getElementById("error-container").innerHTML = message;
   }
@@ -110,8 +108,20 @@
   }
 
   function noToken() {
-    window.location = homePage;
+    window.location = "/login";
   }
+
+  // clears all cookies given to the users and kicks them to the login screen
+  function logout(){
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++){
+      var equals = cookies[i].indexOf('=');
+      var name = equals > -1 ? cookies[i].substr(0, equals) : cookie;
+      document.cookie = name + "=;expires=Fri, 26, Mar 2020 00:00:00 GMT";
+    }
+    noToken();
+  }
+
   if (document.cookie === '') noToken();
   else hasToken();
 </script>
@@ -126,7 +136,7 @@
         <a href="#">Profile</a>
       </span>
       <span class="border border-dark">
-        <a href="#">Logout</a>
+        <a href="#" onclick="logout()">Logout</a>
       </span>
     </div>
   </span>
