@@ -60,7 +60,7 @@
 <script>
   var verbose = false; // for verbose testing output
   var results = []; // holds responses for invalid usernames
-  var users;
+  var users = undefined;
   var goal = 1000; // number of responses to wait for
   var responses = 0; // number of responses currently in
   var testName = "";
@@ -121,11 +121,9 @@
             " at " + goodEmails[i] + ": " + JSON.stringify(results[i])
           );
       }
-      if (testName === "Create Accounts" && users === undefined && !errors)
+      if (users === undefined && !error)
         users = results;
       // save results if the accounts are not yet saved, and no errors
-      else if (testName === "Login Valids Users" && users === undefined && !errors)
-        users = results; // save results if the accounts were created, but not yet saved, and no errors
       results = []; // clear results
       goal = 1000;
       responses = 0;
@@ -272,16 +270,12 @@
 
   // id is the user id, and token is their JWT
   function authLogin(id, token) {
-    var payload = {
-      payload: {
-        id: id,
-      },
-    }; // user to add
+    var payload = {id: id,}; // user to add
 
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Authorization", "Token " + token);
-    var json = JSON.stringify(user); // create string of user json
+    var json = JSON.stringify(payload); // create string of user json
 
     fetch("/api/users/account/current", {
       method: "GET",
