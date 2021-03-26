@@ -34,6 +34,7 @@ userSchema.methods.confirmFriendReq = function (username) {
   return true;
 };
 
+// removes a friend from a users friends list
 userSchema.methods.deleteFriend = function (username) {
   if (username === undefined) return false;
   this.friends.pull({ username: username }).then((user, err) => {
@@ -66,14 +67,14 @@ userSchema.methods.friendRequests = function () {
 // accepts a username and returns true if it is properly formatted
 // and false if not
 userSchema.methods.checkUserName = function (username) {
-  var format = /[^/w\-_.!]/g; // matches for any non alpha numeric characters
+  var format = /[^a-zA-Z0-9\-_.!]/; // matches for any non alpha numeric characters
   if (format.test(username)) return false;
   else return true;
 };
 
 // checks if the users email is formatted properly
 userSchema.methods.checkEmail = function (email) {
-  var format = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+  var format = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/;
   if (format.test(email)) return true;
   else return false;
 };

@@ -94,6 +94,14 @@
     'Robert'
   ];
 
+  // list of bad usernames to use in login
+  var badUsernames = [
+    "This has spaces",
+    "I&contain)IllegalChars",
+    "Idon'tlikeapotrophes",
+    "i<could>beharmful",
+  ];
+
   // list of improper emails
   var badEmails = [
     "thisHasNoAtWebsite.com",
@@ -131,7 +139,6 @@
       else if (error && !needsError) complete(false, testName);
       else if (!error && !needsError) complete(true, testName);
       else complete(false, testName);
-
       running = false; // no test running now
     }
   }, 1000);
@@ -159,12 +166,14 @@
     }
   }
 
+  // logs in all good emails 
   function loginAll() {
     if (running) {
       onError("Login all", "can't run:" + testName + " already running");
       return;
     }
     running = true;
+    needsError = false;
     testName = "Login Valid Users";
     responses = 0;
     goal = goodEmails.length;
@@ -173,6 +182,8 @@
     }
   }
 
+  // uses tokens received from loginall or create all and does
+  // authorized logins with them 
   function authLoginAll() {
     if (running) {
       onError("Login auth", "can't run:" + testName + " already running");
@@ -182,19 +193,69 @@
       onError("Login auth", "can't run: needs preexisting users");
       return;
     }
+    needsError = false;
     running = true;
     testName = "Login Authorized";
     responses = 0;
     goal = goodEmails.length;
     for (var i = 0; i < goal; i++) {
-      authLogin(users[i].id, users[i].token);
+      authLogin(users[i].IdToken, users[i].Token);
     }
   }
 
+  // attempts login with invalid usernames
+  function loginInvalidUser(){
+    if (running) {
+      onError("Login Invalid User", "can't run:" + testName + " already running");
+      return;
+    }
+    needsError = true;
+    running = true;
+    testName = "Login Invalid Users";
+    responses = 0;
+    goal = badEmails.length;
+    for (var i = 0; i < goal; i++) {
+      login(badEmails[i], password);
+    }
+  }
+
+  // attempts to creates account with invalid usernames, valid email
+  function createInvalidUserName() {
+    if (running) {
+      onError("Create: Invalid Usernames", "can't run:" + testName + " already running");
+      return;
+    }
+    needsError = true;
+    running = true;
+    testName = "Create: Invalid Usernames";
+    responses = 0;
+    goal = badUsernames.length;
+    for (var i = 0; i < goal; i++) {
+      create(badUsernames[i], "example@website.com", password);
+    }
+  }
+  
+  // attempts to creates account with invalid email, valid username
+  function createInvalidEmail() {
+    if (running) {
+      onError("Create: Invalid Email", "can't run:" + testName + " already running");
+      return;
+    }
+    needsError = true;
+    running = true;
+    testName = "Create: Invalid Email";
+    responses = 0;
+    goal = badEmails.length;
+    for (var i = 0; i < goal; i++) {
+      create("usertests", badEmails[i], password);
+    }
+  }
+  
+  // out puts a message formatted by the program calling it. 
   function onError(name, error) {
     var message = document.createElement("div");
     message.setAttribute("class", "chat-message");
-    message.textContent = name + ": " + error;
+    message.innerHTML = "<b>" + name + "</b>" + ": " + error;
     var messages = document.getElementById("messages");
     messages.appendChild(message);
     messages.insertBefore(message, messages.firstChild);
@@ -270,17 +331,14 @@
 
   // id is the user id, and token is their JWT
   function authLogin(id, token) {
-    var payload = {id: id,}; // user to add
-
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Authorization", "Token " + token);
-    var json = JSON.stringify(payload); // create string of user json
 
     fetch("/api/users/account/current", {
       method: "GET",
+      payload: {id: id},
       headers: myHeaders,
-      body: json,
     })
       .then((response) => response.json())
       .then((json) => {
@@ -299,9 +357,9 @@
   function complete(passed, name) {
     var message = document.createElement("div");
     message.setAttribute("class", "chat-message");
-    message.textContent = name + " has ";
-    if (passed) message.textContent += "PASSED";
-    else message.textContent += "FAILED";
+    message.innerHTML = "<b>" + name + "</b> has ";
+    if (passed) message.innerHTML += "PASSED";
+    else message.innerHTML += "FAILED";
     var messages = document.getElementById("messages");
     messages.appendChild(message);
     messages.insertBefore(message, messages.firstChild);
@@ -376,12 +434,15 @@
             </div>
             <br />
             <div class="btn-group" role="group" aria-label="Basic example">
+              <button type="button" name="button" class="btn btn-outline-danger" onclick="createInvalidEmail()">
+                Create: Invalid Emails
+              </button>
               <button type="button" name="button" class="btn btn-outline-danger" onclick="createInvalidUserName()">
-                Create accounts invalid usernames
+                Create: Invalid Usernames
               </button>
 
               <button type="button" name="button" class="btn btn-outline-danger" onclick="createAccounts()">
-                Create accounts valid usernames
+                Create: All valid
               </button>
             </div>
             <br />

@@ -61,20 +61,22 @@ router.post("/", auth.optional, (req, res, next) => {
           });
         }
         // check is username is malformed
-        if (!finalUser.checkUserName(user.username)) {
+        else if (!finalUser.checkUserName(user.username)) {
           return res.status(422).json({
             errors: {
               username: "contains illegal characters",
             },
           });
         }
+        else {
 
-        // if not malformed okay to save finalUser and send response
-        finalUser.setPassword(user.password);
+          // if not malformed okay to save finalUser and send response
+          finalUser.setPassword(user.password);
 
-        return finalUser
-          .save()
-          .then(() => res.json({ user: finalUser.toAuthJSON() }));
+          return finalUser
+            .save()
+            .then(() => res.json({ user: finalUser.toAuthJSON() }));
+        }
       }
     }
   );
