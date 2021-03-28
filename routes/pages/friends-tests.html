@@ -131,7 +131,7 @@
   // This will check if a test has been completed every 5 seconds.
   setInterval(function () {
     if (goal <= responses) {
-      if (testName === "Test User Friends List") {
+      if (testName == "Test User Friends List") {
         displayFriendsList(results[0]);
       } else {
         var error = false;
@@ -164,6 +164,15 @@
   // display friends list in message box.
   function displayFriendsList(friendsList) {
     var stop = friendsList.length;
+    if (stop == 0)
+    {
+      var message = document.createElement("div");
+      message.setAttribute("class", "chat-message");
+      message.innerHTML = "<b>Empty Friends List</b>";
+      var messages = document.getElementById("messages");
+      messages.appendChild(message);
+      messages.insertBefore(message, messages.firstChild);
+    }
     for (var i = 0; i < stop; i++) {
       var message = document.createElement("div");
       message.setAttribute("class", "chat-message");
