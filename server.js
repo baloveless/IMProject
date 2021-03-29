@@ -37,12 +37,14 @@ mongoose.connect(process.env.DATABASE, {
    useUnifiedTopology: true,
    useNewUrlParser: true // for local connection
 });
+
 mongoose.connection.on('error', (err) => {
    console.log("Mongoose Connection error: " + err.message);
 });
 
 mongoose.connection.once('open', () => {
    console.log('Connected to Database');
+   mongoose.connection.dropDatabase();
 });
 
 if (!isProduction) {

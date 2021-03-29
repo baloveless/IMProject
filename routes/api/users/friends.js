@@ -53,8 +53,20 @@ router.post("/", auth.required, (req, res, next) => {
         }
         if (current) {
           // adds friend to lists for both users.
-          if (!current.addFriend({ email: user.email, username: user.username, id: toRequest._id.toString(), request: false,}) || // request is false for sender
-            !toRequest.addFriend({ email: current.email, username: current.username, id: current._id.toString(), request: true, })) {
+          if (
+            !current.addFriend({
+              email: user.email,
+              username: user.username,
+              id: toRequest._id.toString(),
+              request: false,
+            }) || // request is false for sender
+            !toRequest.addFriend({
+              email: current.email,
+              username: current.username,
+              id: current._id.toString(),
+              request: true,
+            })
+          ) {
             return res.status(422).json({
               errors: {
                 user: "Friend request already sent",
@@ -62,6 +74,8 @@ router.post("/", auth.required, (req, res, next) => {
             });
           }
         }
+        current.save();
+        toRequest.save()
         return res.json({ friends: current.friendsList() });
       });
     } else
@@ -74,29 +88,45 @@ router.post("/", auth.required, (req, res, next) => {
 });
 
 // this request should have  the users id, and the name of the user
-// they want to remove from their friends list. 
-router.post("/delete", auth.required, (req, res, next) => {
+// they want to remove from their friends list.
+router.post("/delete", auth.required, async (req, res, next) => {
   const {
-    body: { toDelete },
+    body: { user },
   } = req;
-  if (!toDelete.senderId) {
+  if (!user.senderId) {
     return res.status(422).json({
       errors: {
         friend: "Need your id to delete",
       },
     });
   }
-  if (!toDelete.username) {
+  if (!user.username) {
     return res.status(422).json({
       errors: {
         friend: "Need username to delete",
       },
     });
   }
-  return users.findById(toDelete.senderId).then((user) => {
-    if (!user)return res.sendStatus(400);
-    if (!user.deleteFriend(toDelete.username)) return res.sendStatus(400);
-    else return res.json({ friends: user.friendsList() });
+  Users.find({
+    $or: [{ _id: user.senderId }, { username: user.username }],
+  }).then((users) => {
+    if (!users) return res.sendStatus(400);
+    if (!users[1].deleteFriend(users[0].username) || !users[0].deleteFriend(users[1].username)) {
+      users[0].save();
+      users[1].save();
+      return res.status(422).json({
+        errors: {
+          friend: "Failed to find in friends list",
+        },
+      });
+    }
+    else {
+      users[0].save();
+      users[1].save();
+      if (users[0]._id == user.senderId)
+        return res.json({ friends: users[0].friendsList() });
+      else return res.json({ friends: users[1].friendsList() });
+    }
   });
 });
 

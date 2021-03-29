@@ -12,6 +12,7 @@
     "foobar": "^1.1.0",
     "mongodb": "^3.6.4",
     "mongoose": "^5.11.20",
+    "mongoose-diff-history": "^2.1.0",
     "morgan": "^1.10.0",
     "node": "^15.8.0",
     "npm": "^6.14.10",

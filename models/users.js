@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+diffHistory = require('mongoose-diff-history/diffHistory');
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
@@ -11,16 +12,41 @@ const userSchema = new mongoose.Schema({
   chats: [String],
 });
 
+userSchema.plugin(diffHistory.plugin);
+
+userSchema.pre('save', async function (next) {
+  diffHistory.getDiffs('users', this._id, function (err, histories) {
+    if (err)
+      next(err);
+    else if (!histories)
+      next();
+    else {
+      histories.forEach((history, i) => {
+        if (history.diff.friends)
+          applyFriendsListHistory(history.diff.friends, this.friends);
+      });
+    }
+  });
+  next();
+});
+
+// called pre save to ensure data cohesion in 
+// history and saved friends list
+function applyFriendsListHistory (updates, friends){
+  var changes = JSON.stringify(updates);
+  var parsed = changes.match(/(\[\S*[^\[\]]\])/);
+  console.log(parsed);
+}
+
+
 // friend item should be an object containing a username,
 // email and id, some have request field
 userSchema.methods.addFriend = function (friend) {
-	if (!friend || !friend.email || !friend.username || !friend.id) return false;
-	for (var x = 0; x < this.friends.length; x++){
-		if (this.friends[x].email == friend.email)
-			return false;
-	}
-	this.friends.push(friend);
- 	this.save();
+  if (!friend || !friend.email || !friend.username || !friend.id) return false;
+  for (var x = 0; x < this.friends.length; x++) {
+    if (this.friends[x].email == friend.email) return false;
+  }
+  this.friends.push(friend);
   return true;
 };
 
@@ -30,40 +56,47 @@ userSchema.methods.confirmFriendReq = function (username) {
   this.friends.find({ username }).then((friend) => {
     friend = { username: friend.username, email: friend.email, id: friend.id };
   });
-  this.save();
   return true;
 };
 
 // removes a friend from a users friends list
-userSchema.methods.deleteFriend = function (username) {
-  if (username === undefined) return false;
-  this.friends.pull({ username: username }).then((user, err) => {
-    if (err)
-      return false
-    return true;
-  });
+userSchema.methods.deleteFriend = async function (toFind) {
+    if (toFind === undefined) return false;
+    var stop = this.friends.length;
+    for (var i = 0; i < stop; i++) {
+      if (this.friends[i].username == toFind) {
+        this.friends.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
 };
 
 // returns users friends list without ids
 userSchema.methods.friendsList = function () {
   var friendsList = [];
-	this.friends.forEach((friend, i) => {
-		if (friend.request === undefined)
+  this.friends.forEach((friend, i) => {
+    if (!friend) i = i;
+    else if (friend.request === undefined)
       friendsList.push({ username: friend.username, email: friend.email });
     else if (friend.request === false)
-      friendsList.push({ username: friend.username, email: friend.email, request: "pending" });
-	});
-	return friendsList;
+      friendsList.push({
+        username: friend.username,
+        email: friend.email,
+        request: "pending",
+      });
+  });
+  return friendsList;
 };
 
 // returns users pending friend requests
 userSchema.methods.friendRequests = function () {
   var friendsList = [];
-	this.friends.forEach((friend, i) => {
-		if (friend.request !== undefined && friend.request)
-    	friendsList.push({ username: friend.username, email: friend.email });
-	});
-	return friendsList;
+  this.friends.forEach((friend, i) => {
+    if (friend.request !== undefined && friend.request)
+      friendsList.push({ username: friend.username, email: friend.email });
+  });
+  return friendsList;
 };
 
 // accepts a username and returns true if it is properly formatted

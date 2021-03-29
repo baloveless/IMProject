@@ -63,6 +63,7 @@
     }
   };
 
+  // gets jwt from browser
   function getToken(){
     var tokens = document.cookie.split(';');
     var i = 0;
@@ -72,6 +73,7 @@
     return tokens[i].replace('=', ' ');
   }
 
+  // get id token from browser
   function getId(){
     var tokens = document.cookie.split(';');
     var i = 0;
