@@ -32,10 +32,13 @@ userSchema.pre('save', async function (next) {
 
 // called pre save to ensure data cohesion in 
 // history and saved friends list
-function applyFriendsListHistory (updates, friends){
+function applyFriendsListHistory(updates, friends) {
+  // don't stringify, find a way to use regex to search through json object
+  // OR use this progress and make another match call to retrieve username
+  // to search for. 
   var changes = JSON.stringify(updates);
   var parsed = changes.match(/(\[\S*[^\[\]]\])/);
-  console.log(parsed);
+  console.log(parsed[0]);
 }
 
 
