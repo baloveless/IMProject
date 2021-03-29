@@ -41,7 +41,7 @@ localhost:3000
 
 ## Current
 
-Friends List: Working on creating and sending friend requests on the back end. Should be done by 3/27/2021
+Friends List: Working on creating and sending friend requests on the back end. Running into version control issues. Doing some research. Original Goal 3/27/2021, Moving to 4/1/2021.
 
 ## Next 
 
