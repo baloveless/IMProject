@@ -1,539 +1,499 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
-      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
-      crossorigin="anonymous"
-    />
-    <title>TestSuite</title>
-    <style>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+    integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous" />
+  <title>TestSuite</title>
+  <style>
+    .sidenav {
+      height: 100%;
+      width: 160px;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: plum;
+      overflow-x: hidden;
+      padding-top: 20px;
+    }
+
+    .sidenav a {
+      padding: 6px 8px 6px 16px;
+      text-decoration: none;
+      font-size: 25px;
+      color: black;
+      display: block;
+    }
+
+    .sidenav a:hover {
+      color: whitesmoke;
+    }
+
+    .main {
+      margin-left: 160px;
+      padding: 0px 10px;
+    }
+
+    @media screen and (max-height: 450px) {
       .sidenav {
-        height: 100%;
-        width: 160px;
-        position: fixed;
-        z-index: 1;
-        top: 0;
-        left: 0;
-        background-color: plum;
-        overflow-x: hidden;
-        padding-top: 20px;
+        padding-top: 15px;
       }
 
       .sidenav a {
-        padding: 6px 8px 6px 16px;
-        text-decoration: none;
-        font-size: 25px;
-        color: black;
-        display: block;
+        font-size: 18px;
       }
-
-      .sidenav a:hover {
-        color: whitesmoke;
-      }
-
-      .main {
-        margin-left: 160px;
-        padding: 0px 10px;
-      }
-
-      @media screen and (max-height: 450px) {
-        .sidenav {
-          padding-top: 15px;
-        }
-
-        .sidenav a {
-          font-size: 18px;
-        }
-      }
-
-      #message-container {
-        height: 300px;
-        overflow: auto;
-      }
-    </style>
-  </head>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"
-    integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
-    crossorigin="anonymous"
-  ></script>
-  <script>
-    var testUser = undefined;
-    var verbose = false; // for verbose testing output
-    var results = []; // holds responses for invalid usernames
-    var users = undefined;
-    var goal = 1000; // number of responses to wait for
-    var responses = 0; // number of responses currently in
-    var testName = "";
-    var running = false;
-    var needsError = false; // current test should return error
-    var createRan = false; // changed to true once good emails have accounts connected
-    // list of properly formatted emails.
-    var goodEmails = [
-      "name@website.com",
-      "userat@place.com",
-      "baloveless@icloud.com",
-      "maggie@facebook.com",
-      "harry@local.com",
-      "tom@website.com",
-      "carlton@website.com",
-      "oen@website.com",
-      "piper@website.com",
-      "robert@website.com",
-    ];
-
-    var goodUsernames = [
-      "Name",
-      "User",
-      "Blake",
-      "Maggie",
-      "Harry",
-      "Tom",
-      "Carlton",
-      "Oen",
-      "Piper",
-      "Robert",
-    ];
-
-    // list of bad usernames to use in login
-    var badUsernames = [
-      "This has spaces",
-      "I&contain)IllegalChars",
-      "Idon'tlikeapotrophes",
-      "i<could>beharmful",
-    ];
-
-    // list of improper emails
-    var badEmails = [
-      "thisHasNoAtWebsite.com",
-      "ICont&^nBa#Lette%rs@website.com",
-      "toomany@.dots.com.here",
-      "@no.name.net",
-      "cantstart@.with.a.dot.com",
-      ".emailsdontstart@with.com",
-      "*getWrong()@badcharacters.com",
-      "double..dotted@hero.com",
-    ];
-
-    // using the same password for every test until the email format verification works.
-    var password = "test";
-
-    // prime user list so other functions can be run.
-    loginAll();
-
-    // clears output window
-    function clearTests() {
-      console.log("clearing output");
-      var msgs = document.getElementById("messages");
-      msgs.textContent = "";
     }
 
-    // This will check if a test has been completed every half second.
-    setInterval(function () {
-      if (goal <= responses) {
-        if (testName == "Test User Friends List") {
-          displayFriendsList(results[0]);
+    #message-container {
+      height: 300px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"
+  integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
+  crossorigin="anonymous"></script>
+<script>
+  var testUser = undefined;
+  var verbose = false; // for verbose testing output
+  var results = []; // holds responses for invalid usernames
+  var users = undefined;
+  var goal = 1000; // number of responses to wait for
+  var responses = 0; // number of responses currently in
+  var testName = "";
+  var running = false;
+  var needsError = false; // current test should return error
+  var createRan = false; // changed to true once good emails have accounts connected
+  // list of properly formatted emails.
+  var goodEmails = [
+    "name@website.com",
+    "userat@place.com",
+    "baloveless@icloud.com",
+    "maggie@facebook.com",
+    "harry@local.com",
+    "tom@website.com",
+    "carlton@website.com",
+    "oen@website.com",
+    "piper@website.com",
+    "robert@website.com",
+  ];
+
+  var goodUsernames = [
+    "Name",
+    "User",
+    "Blake",
+    "Maggie",
+    "Harry",
+    "Tom",
+    "Carlton",
+    "Oen",
+    "Piper",
+    "Robert",
+  ];
+
+  // list of bad usernames to use in login
+  var badUsernames = [
+    "This has spaces",
+    "I&contain)IllegalChars",
+    "Idon'tlikeapotrophes",
+    "i<could>beharmful",
+  ];
+
+  // list of improper emails
+  var badEmails = [
+    "thisHasNoAtWebsite.com",
+    "ICont&^nBa#Lette%rs@website.com",
+    "toomany@.dots.com.here",
+    "@no.name.net",
+    "cantstart@.with.a.dot.com",
+    ".emailsdontstart@with.com",
+    "*getWrong()@badcharacters.com",
+    "double..dotted@hero.com",
+  ];
+
+  // using the same password for every test until the email format verification works.
+  var password = "test";
+
+  // prime user list so other functions can be run.
+  loginAll();
+
+  // clears output window
+  function clearTests() {
+    console.log("clearing output");
+    var msgs = document.getElementById("messages");
+    msgs.textContent = "";
+  }
+
+  // This will check if a test has been completed every half second.
+  setInterval(function () {
+    if (goal <= responses) {
+      if (testName == "Test User Friends List") {
+        displayFriendsList(results[0]);
+      } else {
+        var error = false;
+        for (var i = 0; i < goal - 1; i++) {
+          if (results[i].Token === undefined) {
+            error = true;
+          }
+
+          if (verbose)
+            onError(
+              testName,
+              " at " + goodEmails[i] + ": " + JSON.stringify(results[i])
+            );
+        }
+        if (users === undefined && !error) users = results;
+      }
+      // save results if the accounts are not yet saved, and no errors
+      results = []; // clear results
+      goal = 1000;
+      responses = 0;
+      if (error && needsError) complete(true, testName);
+      else if (error && !needsError) complete(false, testName);
+      else if (!error && !needsError) complete(true, testName);
+      else complete(false, testName);
+      running = false; // no test running now
+    }
+  }, 500);
+
+  // display friends list in message box.
+  function displayFriendsList(friendsList) {
+    var stop = friendsList.length;
+    if (stop == 0) {
+      var message = document.createElement("div");
+      message.setAttribute("class", "chat-message");
+      message.innerHTML = "<b>Empty Friends List</b>";
+      var messages = document.getElementById("messages");
+      messages.appendChild(message);
+      messages.insertBefore(message, messages.firstChild);
+    }
+    for (var i = 0; i < stop; i++) {
+      var message = document.createElement("div");
+      message.setAttribute("class", "chat-message");
+      message.innerHTML =
+        "<b>" +
+        friendsList[i].username +
+        "</b>" +
+        "Email: " +
+        friendsList[i].email;
+      if (friendsList[i].request) {
+        message.innerHTML += " is <b>pending</b>";
+      }
+      var messages = document.getElementById("messages");
+      messages.appendChild(message);
+      messages.insertBefore(message, messages.firstChild);
+    }
+  }
+
+  // sends out friend requests to all users on good emails list from testUser
+  function sendRequests() {
+    if (running) {
+      onError("Send Requests", "can't run:" + testName + " already running");
+      return;
+    }
+    running = true; // test running
+    needsError = false; // should not have errors
+    testName = "Send Requests";
+    responses = 0;
+    goal = goodEmails.length;
+    for (var i = 0; i < goal; i++) {
+      friendRequest(goodEmails[i], goodUsernames[i], testUser);
+    }
+  }
+
+  // deletes requests created by send requests
+  // delete also works to delete existing friends
+  async function deleteFriends() {
+    if (running) {
+      onError("Delete Friends", "can't run:" + testName + " already running");
+      return;
+    }
+    running = true; // test running
+    needsError = false; // should not have errors
+    testName = "Delete Friends";
+    responses = 0;
+    goal = goodEmails.length;
+    for (var i = 0; i < goal; i++) {
+      await deleteFriend(goodUsernames[i], testUser);
+    }
+  }
+
+  // shows friends list of test user.
+  function testFriendsList() {
+    if (running) {
+      onError(
+        "Test User Friends list",
+        "can't run:" + testName + " already running"
+      );
+      return;
+    }
+    running = true; // test running
+    needsError = false; // should not have errors
+    testName = "Test User Friends List";
+    responses = 0;
+    goal = 1;
+    getFriendsList(testUser);
+  }
+
+  // sends a friend request from user to user with email and username passed in
+  function friendRequest(email, username, sender) {
+    var user = {
+      user: {
+        senderId: sender.IdToken,
+        email: email,
+        username: username,
+      },
+    }; // user to add
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Token " + sender.Token);
+    var json = JSON.stringify(user); // create string of user json
+
+    fetch("/api/users/account/friends/", {
+      method: "POST",
+      headers: myHeaders,
+      body: json,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        responses++;
+        if (json.errors === undefined) {
+          var pushUser = json.friends;
+          results.push(pushUser);
         } else {
-          var error = false;
-          for (var i = 0; i < goal - 1; i++) {
-            if (results[i].Token === undefined) {
-              error = true;
-            }
-
-            if (verbose)
-              onError(
-                testName,
-                " at " + goodEmails[i] + ": " + JSON.stringify(results[i])
-              );
-          }
-          if (users === undefined && !error) users = results;
+          var pushUser = json.errors;
+          results.push(pushUser);
         }
-        // save results if the accounts are not yet saved, and no errors
-        results = []; // clear results
-        goal = 1000;
-        responses = 0;
-        if (error && needsError) complete(true, testName);
-        else if (error && !needsError) complete(false, testName);
-        else if (!error && !needsError) complete(true, testName);
-        else complete(false, testName);
-        running = false; // no test running now
-      }
-    }, 500);
+      });
+  }
 
-    // display friends list in message box.
-    function displayFriendsList(friendsList) {
-      var stop = friendsList.length;
-      if (stop == 0) {
-        var message = document.createElement("div");
-        message.setAttribute("class", "chat-message");
-        message.innerHTML = "<b>Empty Friends List</b>";
-        var messages = document.getElementById("messages");
-        messages.appendChild(message);
-        messages.insertBefore(message, messages.firstChild);
-      }
-      for (var i = 0; i < stop; i++) {
-        var message = document.createElement("div");
-        message.setAttribute("class", "chat-message");
-        message.innerHTML =
-          "<b>" +
-          friendsList[i].username +
-          "</b>" +
-          "Email: " +
-          friendsList[i].email;
-        if (friendsList[i].request) {
-          message.innerHTML += " is <b>pending</b>";
+  // fetches a users friends list
+  function getFriendsList(user) {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Token " + user.Token);
+    var json = JSON.stringify(user); // create string of user json
+
+    fetch("/api/users/account/friends", {
+      method: "GET",
+      payload: { id: user.IdToken },
+      headers: myHeaders,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        responses++;
+        if (json.errors === undefined) {
+          var pushUser = json.friends;
+          results.push(pushUser);
+        } else {
+          var pushUser = json.errors;
+          results.push(pushUser);
         }
-        var messages = document.getElementById("messages");
-        messages.appendChild(message);
-        messages.insertBefore(message, messages.firstChild);
-      }
+      });
+  }
+
+  // deletes a friend from sender ids list name
+  async function deleteFriend(username, sender) {
+    var user = {
+      user: {
+        senderId: sender.IdToken,
+        username: username,
+      },
+    }; // user to add
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Token " + sender.Token);
+    var json = JSON.stringify(user); // create string of user json
+
+    var response = await fetch("/api/users/account/friends/delete", {
+      method: "POST",
+      headers: myHeaders,
+      body: json,
+    })
+    const bod = response.blob;
+    responses++;
+    if (json.errors === undefined) {
+      var pushUser = json.friends;
+      results.push(pushUser);
+      return ret = await Promise.resolve();
+    } else {
+      var pushUser = json.errors;
+      results.push(pushUser);
+      return ret = await Promise.resolve();
     }
+  }
+  // out puts a message formatted by the program calling it.
+  function onError(name, error) {
+    var message = document.createElement("div");
+    message.setAttribute("class", "chat-message");
+    message.innerHTML = "<b>" + name + "</b>" + ": " + error;
+    var messages = document.getElementById("messages");
+    messages.appendChild(message);
+    messages.insertBefore(message, messages.firstChild);
+  }
 
-    // sends out friend requests to all users on good emails list from testUser
-    function sendRequests() {
-      if (running) {
-        onError("Send Requests", "can't run:" + testName + " already running");
-        return;
-      }
-      running = true; // test running
-      needsError = false; // should not have errors
-      testName = "Send Requests";
-      responses = 0;
-      goal = goodEmails.length;
-      for (var i = 0; i < goal; i++) {
-        friendRequest(goodEmails[i], goodUsernames[i], testUser);
-      }
+  // adds output message to the box
+  function complete(passed, name) {
+    var message = document.createElement("div");
+    message.setAttribute("class", "chat-message");
+    message.innerHTML = "<b>" + name + "</b> has ";
+    if (passed) message.innerHTML += "PASSED";
+    else message.innerHTML += "FAILED";
+    var messages = document.getElementById("messages");
+    messages.appendChild(message);
+    messages.insertBefore(message, messages.firstChild);
+  }
+
+  // primes list of users
+  function loginAll() {
+    if (running) {
+      onError("Login all", "can't run:" + testName + " already running");
+      return;
     }
-
-    // deletes requests created by send requests
-    // delete also works to delete existing friends
-    function deleteFriends() {
-      if (running) {
-        onError("Delete Friends", "can't run:" + testName + " already running");
-        return;
-      }
-      running = true; // test running
-      needsError = false; // should not have errors
-      testName = "Delete Friends";
-      responses = 0;
-      goal = goodEmails.length;
-      for (var i = 0; i < goal; i++) {
-        deleteFriend(goodUsernames[i], testUser);
-      }
+    running = true;
+    needsError = false;
+    testName = "PRIME USER LIST";
+    responses = 0;
+    goal = goodEmails.length;
+    for (var i = 0; i < goal; i++) {
+      login(goodEmails[i], password);
     }
+    // login with test user
+    login("baloveless12@gmail.com", password);
+  }
 
-    // shows friends list of test user.
-    function testFriendsList() {
-      if (running) {
-        onError(
-          "Test User Friends list",
-          "can't run:" + testName + " already running"
-        );
-        return;
-      }
-      running = true; // test running
-      needsError = false; // should not have errors
-      testName = "Test User Friends List";
-      responses = 0;
-      goal = 1;
-      getFriendsList(testUser);
-    }
+  // copied from usertests, just used to prime list of users
+  function login(email, password) {
+    var user = {
+      user: {
+        email: email,
+        password: password,
+      },
+    }; // user to add
 
-    // sends a friend request from user to user with email and username passed in
-    function friendRequest(email, username, sender) {
-      var user = {
-        user: {
-          senderId: sender.IdToken,
-          email: email,
-          username: username,
-        },
-      }; // user to add
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    var json = JSON.stringify(user); // create string of user json
 
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      myHeaders.append("Authorization", "Token " + sender.Token);
-      var json = JSON.stringify(user); // create string of user json
-
-      fetch("/api/users/account/friends/", {
-        method: "POST",
-        headers: myHeaders,
-        body: json,
-      })
-        .then((response) => response.json())
-        .then((json) => {
-          responses++;
-          if (json.errors === undefined) {
-            var pushUser = json.friends;
-            results.push(pushUser);
-          } else {
-            var pushUser = json.errors;
-            results.push(pushUser);
-          }
-        });
-    }
-
-    // fetches a users friends list
-    function getFriendsList(user) {
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      myHeaders.append("Authorization", "Token " + user.Token);
-      var json = JSON.stringify(user); // create string of user json
-
-      fetch("/api/users/account/friends", {
-        method: "GET",
-        payload: { id: user.IdToken },
-        headers: myHeaders,
-      })
-        .then((response) => response.json())
-        .then((json) => {
-          responses++;
-          if (json.errors === undefined) {
-            var pushUser = json.friends;
-            results.push(pushUser);
-          } else {
-            var pushUser = json.errors;
-            results.push(pushUser);
-          }
-        });
-    }
-
-    // deletes a friend from sender ids list name
-    function deleteFriend(username, sender) {
-      var user = {
-        user: {
-          senderId: sender.IdToken,
-          username: username,
-        },
-      }; // user to add
-
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      myHeaders.append("Authorization", "Token " + sender.Token);
-      var json = JSON.stringify(user); // create string of user json
-
-      fetch("/api/users/account/friends/delete", {
-        method: "POST",
-        headers: myHeaders,
-        body: json,
-      })
-        .then((response) => response.json())
-        .then((json) => {
-          async () => {
-            try {
-              responses++;
-              if (json.errors === undefined) {
-                var pushUser = json.friends;
-                results.push(pushUser);
-              } else {
-                var pushUser = json.errors;
-                results.push(pushUser);
-              }
-            } catch (error) {
-              console.log(error);
-            }
+    fetch("/api/users/account/login", {
+      method: "POST",
+      headers: myHeaders,
+      body: json,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        responses++;
+        if (json.errors === undefined) {
+          var pushUser = {
+            email: json.user.email,
+            Token: json.user.token,
+            IdToken: json.user.id,
           };
-        });
+          if (email != "baloveless12@gmail.com") results.push(pushUser);
+          else if (testUser === undefined) testUser = pushUser;
+        } else {
+          var pushUser = json.errors;
+          results.push(pushUser);
+        }
+      });
+  }
+
+  // includes output for each individual test
+  function verboseOn() {
+    var ver = document.getElementById("verboseOff");
+    if (ver === undefined) return;
+    else {
+      ver.className = "btn btn-primary btn-block";
+      ver.innerText = "Disable Verbose Testing";
+      ver.setAttribute("onClick", "javascript: verboseOff();");
+      ver.id = "verboseOn";
+      verbose = true;
     }
-    // out puts a message formatted by the program calling it.
-    function onError(name, error) {
-      var message = document.createElement("div");
-      message.setAttribute("class", "chat-message");
-      message.innerHTML = "<b>" + name + "</b>" + ": " + error;
-      var messages = document.getElementById("messages");
-      messages.appendChild(message);
-      messages.insertBefore(message, messages.firstChild);
+  }
+
+  // excludes output for each individual test
+  function verboseOff() {
+    var ver = document.getElementById("verboseOn");
+    if (ver === undefined) return;
+    else {
+      ver.className = "btn btn-outline-secondary";
+      ver.innerText = "Enable Verbose Testing";
+      ver.setAttribute("onClick", "javascript: verboseOn();");
+      ver.id = "verboseOff";
+      verbose = false;
     }
+  }
+</script>
 
-    // adds output message to the box
-    function complete(passed, name) {
-      var message = document.createElement("div");
-      message.setAttribute("class", "chat-message");
-      message.innerHTML = "<b>" + name + "</b> has ";
-      if (passed) message.innerHTML += "PASSED";
-      else message.innerHTML += "FAILED";
-      var messages = document.getElementById("messages");
-      messages.appendChild(message);
-      messages.insertBefore(message, messages.firstChild);
-    }
-
-    // primes list of users
-    function loginAll() {
-      if (running) {
-        onError("Login all", "can't run:" + testName + " already running");
-        return;
-      }
-      running = true;
-      needsError = false;
-      testName = "PRIME USER LIST";
-      responses = 0;
-      goal = goodEmails.length;
-      for (var i = 0; i < goal; i++) {
-        login(goodEmails[i], password);
-      }
-      // login with test user
-      login("baloveless12@gmail.com", password);
-    }
-
-    // copied from usertests, just used to prime list of users
-    function login(email, password) {
-      var user = {
-        user: {
-          email: email,
-          password: password,
-        },
-      }; // user to add
-
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      var json = JSON.stringify(user); // create string of user json
-
-      fetch("/api/users/account/login", {
-        method: "POST",
-        headers: myHeaders,
-        body: json,
-      })
-        .then((response) => response.json())
-        .then((json) => {
-          responses++;
-          if (json.errors === undefined) {
-            var pushUser = {
-              email: json.user.email,
-              Token: json.user.token,
-              IdToken: json.user.id,
-            };
-            if (email != "baloveless12@gmail.com") results.push(pushUser);
-            else if (testUser === undefined) testUser = pushUser;
-          } else {
-            var pushUser = json.errors;
-            results.push(pushUser);
-          }
-        });
-    }
-
-    // includes output for each individual test
-    function verboseOn() {
-      var ver = document.getElementById("verboseOff");
-      if (ver === undefined) return;
-      else {
-        ver.className = "btn btn-primary btn-block";
-        ver.innerText = "Disable Verbose Testing";
-        ver.setAttribute("onClick", "javascript: verboseOff();");
-        ver.id = "verboseOn";
-        verbose = true;
-      }
-    }
-
-    // excludes output for each individual test
-    function verboseOff() {
-      var ver = document.getElementById("verboseOn");
-      if (ver === undefined) return;
-      else {
-        ver.className = "btn btn-outline-secondary";
-        ver.innerText = "Enable Verbose Testing";
-        ver.setAttribute("onClick", "javascript: verboseOn();");
-        ver.id = "verboseOff";
-        verbose = false;
-      }
-    }
-  </script>
-
-  <body>
-    <span class="border border-dark">
-      <div class="sidenav">
-        <span class="border border-dark">
-          <a href="/usertests">User tests</a>
-        </span>
-        <span class="border border-dark">
-          <a href="#">****Test*****</a>
-        </span>
-        <span class="border border-dark">
-          <a href="#">****Test*****</a>
-        </span>
-      </div>
-    </span>
-    <div class="main">
-      <div class="container">
-        <div class="row">
-          <div class="col">
-            <h1 class="text-center">Test Suite</h1>
-            <p class="text-center">Please Choose a test to execute</p>
-            <p class="text-center">
-              For descriptions of each test go to the descriptions tab
-            </p>
-            <p class="text-center">
-              <b
-                >DATABASE MUST BE POPULATED BY USERTESTS FIRST,
-                <br />
-                RUN CREATE VALID USERS IN USERTESTS
-              </b>
-            </p>
-            <div id="error-container"></div>
-            <div class="text-center">
-              <div class="btn-group" role="group" aria-label="Basic example">
-                <button
-                  type="button"
-                  id="verboseOff"
-                  class="btn btn-outline-secondary"
-                  onclick="verboseOn()"
-                >
-                  Enable verbose testing
-                </button>
-                <button
-                  type="button"
-                  id="clear"
-                  class="btn btn-outline-primary"
-                  onclick="clearTests()"
-                >
-                  Clear Test Output
-                </button>
-              </div>
+<body>
+  <span class="border border-dark">
+    <div class="sidenav">
+      <span class="border border-dark">
+        <a href="/usertests">User tests</a>
+      </span>
+      <span class="border border-dark">
+        <a href="#">****Test*****</a>
+      </span>
+      <span class="border border-dark">
+        <a href="#">****Test*****</a>
+      </span>
+    </div>
+  </span>
+  <div class="main">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h1 class="text-center">Test Suite</h1>
+          <p class="text-center">Please Choose a test to execute</p>
+          <p class="text-center">
+            For descriptions of each test go to the descriptions tab
+          </p>
+          <p class="text-center">
+            <b>DATABASE MUST BE POPULATED BY USERTESTS FIRST,
               <br />
-              <div class="btn-group" role="group" aria-label="Basic example">
-                <button
-                  type="button"
-                  name="button"
-                  class="btn btn-outline-danger"
-                  onclick="sendRequests()"
-                >
-                  Test User: Send Requests
-                </button>
-                <button
-                  type="button"
-                  name="button"
-                  class="btn btn-outline-danger"
-                  onclick="testFriendsList()"
-                >
-                  Test User: Get Friends List
-                </button>
-                <button
-                  type="button"
-                  name="button"
-                  class="btn btn-outline-danger"
-                  onclick="deleteFriends()"
-                >
-                  Test User: Delete Friends
-                </button>
-              </div>
-              <br />
-              <div
-                class="btn-group"
-                role="group"
-                aria-label="Basic example"
-              ></div>
+              RUN CREATE VALID USERS IN USERTESTS
+            </b>
+          </p>
+          <div id="error-container"></div>
+          <div class="text-center">
+            <div class="btn-group" role="group" aria-label="Basic example">
+              <button type="button" id="verboseOff" class="btn btn-outline-secondary" onclick="verboseOn()">
+                Enable verbose testing
+              </button>
+              <button type="button" id="clear" class="btn btn-outline-primary" onclick="clearTests()">
+                Clear Test Output
+              </button>
             </div>
-            <div class="card">
-              <div id="message-container" class="card-block">
-                <div id="messages"></div>
-              </div>
+            <br />
+            <div class="btn-group" role="group" aria-label="Basic example">
+              <button type="button" name="button" class="btn btn-outline-danger" onclick="sendRequests()">
+                Test User: Send Requests
+              </button>
+              <button type="button" name="button" class="btn btn-outline-danger" onclick="testFriendsList()">
+                Test User: Get Friends List
+              </button>
+              <button type="button" name="button" class="btn btn-outline-danger" onclick="deleteFriends()">
+                Test User: Delete Friends
+              </button>
+            </div>
+            <br />
+            <div class="btn-group" role="group" aria-label="Basic example"></div>
+          </div>
+          <div class="card">
+            <div id="message-container" class="card-block">
+              <div id="messages"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>

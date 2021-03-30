@@ -14,32 +14,32 @@ const userSchema = new mongoose.Schema({
 
 userSchema.plugin(diffHistory.plugin);
 
-userSchema.pre('save', async function (next) {
-  diffHistory.getDiffs('users', this._id, function (err, histories) {
-    if (err)
-      next(err);
-    else if (!histories)
-      next();
-    else {
-      histories.forEach((history, i) => {
-        if (history.diff.friends)
-          applyFriendsListHistory(history.diff.friends, this.friends);
-      });
-    }
-  });
+userSchema.pre('save', function (next) {
+  //diffHistory.getDiffs('users', this._id, function (err, histories) {
+    //if (err)
+      //next(err);
+    //else if (!histories)
+      //next();
+    //else {
+      //histories.forEach((history, i) => {
+        //if (history.diff.friends)
+          //applyFriendsListHistory(history.diff.friends, this.friends);
+      //});
+    //}
+  //});
   next();
 });
 
 // called pre save to ensure data cohesion in 
 // history and saved friends list
-function applyFriendsListHistory(updates, friends) {
-  // don't stringify, find a way to use regex to search through json object
-  // OR use this progress and make another match call to retrieve username
-  // to search for. 
-  var changes = JSON.stringify(updates);
-  var parsed = changes.match(/(\[\S*[^\[\]]\])/);
-  console.log(parsed[0]);
-}
+//function applyFriendsListHistory(updates, friends) {
+  //// don't stringify, find a way to use regex to search through json object
+  //// OR use this progress and make another match call to retrieve username
+  //// to search for. 
+  //var changes = JSON.stringify(updates);
+  //var parsed = changes.match(/(\[\S*[^\[\]]\])/);
+  ////console.log(parsed[0]);
+//}
 
 
 // friend item should be an object containing a username,
@@ -69,10 +69,10 @@ userSchema.methods.deleteFriend = async function (toFind) {
     for (var i = 0; i < stop; i++) {
       if (this.friends[i].username == toFind) {
         this.friends.splice(i, 1);
-        return true;
+        return ret = await Promise.resolve(true)
       }
-    }
-    return false;
+  }
+  return ret = await Promise.resolve(false)
 };
 
 // returns users friends list without ids

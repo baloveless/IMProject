@@ -76,7 +76,7 @@ router.post("/", auth.required, (req, res, next) => {
         }
         current.save();
         toRequest.save()
-        return res.json({ friends: current.friendsList() });
+        return res.json({ friends: "Friend was added" });
       });
     } else
       return res.status(422).json({
@@ -89,7 +89,7 @@ router.post("/", auth.required, (req, res, next) => {
 
 // this request should have  the users id, and the name of the user
 // they want to remove from their friends list.
-router.post("/delete", auth.required, async (req, res, next) => {
+router.post("/delete", auth.required, async function (req, res, next) {
   const {
     body: { user },
   } = req;
@@ -107,27 +107,31 @@ router.post("/delete", auth.required, async (req, res, next) => {
       },
     });
   }
-  Users.find({
+  const users = await Users.find({
     $or: [{ _id: user.senderId }, { username: user.username }],
-  }).then((users) => {
-    if (!users) return res.sendStatus(400);
-    if (!users[1].deleteFriend(users[0].username) || !users[0].deleteFriend(users[1].username)) {
-      users[0].save();
-      users[1].save();
-      return res.status(422).json({
-        errors: {
-          friend: "Failed to find in friends list",
-        },
-      });
+  });
+  if (!users) return res.sendStatus(400);
+  var del1 = await users[1].deleteFriend(users[0].username)
+  var del2 = await users[0].deleteFriend(users[1].username)
+  if (!del1 || !del2) {
+    res.status(422).json({
+      errors: {
+        friend: "Failed to find in friends list",
+      },
+    });
+    return ret = Promise.reject('error');
+  }
+  else {
+    await users[0].save();
+    await users[1].save();
+    if (users[0]._id == user.senderId) {
+      res.json({ friends: users[0].friendsList() });
     }
     else {
-      users[0].save();
-      users[1].save();
-      if (users[0]._id == user.senderId)
-        return res.json({ friends: users[0].friendsList() });
-      else return res.json({ friends: users[1].friendsList() });
+      res.json({ friends: users[1].friendsList() });
     }
-  });
+    return ret = Promise.resolve('added');
+  }
 });
 
 module.exports = router;
