@@ -49,7 +49,7 @@
     }
 
     #message-container {
-      height: 300px;
+      height: 500px;
       overflow: auto;
     }
   </style>
@@ -130,14 +130,19 @@
 
   // This will check if a test has been completed every half second.
   setInterval(function () {
+    var error = 0;
     if (goal <= responses) {
       if (testName == "Test User Friends List") {
-        displayFriendsList(results[0]);
-      } else {
-        var error = false;
-        for (var i = 0; i < goal - 1; i++) {
+        displayFriendsList(results[0].friends);
+      } else if (testName == "All Users Friends Lists") {
+        for (var i = 0; i < goal; i++ ){
+          onError(results[i].name, 'Friends List Below')
+          displayFriendsList(results[i].friends); 
+        }
+      }else {
+        for (var i = 0; i < goal; i++) {
           if (results[i].errors !== undefined) {
-            error = true;
+            error++;
           }
           if (verbose)
             onError(
@@ -151,9 +156,9 @@
       results = []; // clear results
       goal = 1000;
       responses = 0;
-      if (error && needsError) complete(true, testName);
-      else if (error && !needsError) complete(false, testName);
-      else if (!error && !needsError) complete(true, testName);
+      if (error > 0 && needsError) complete(true, testName);
+      else if (error > 0&& !needsError) complete(false, testName);
+      else if (error == 0 && !needsError) complete(true, testName);
       else complete(false, testName);
       running = false; // no test running now
     }
@@ -191,7 +196,7 @@
   // sends out friend requests to all users on good emails list from testUser
   function sendRequests() {
     if (running) {
-      onError("Send Requests", "can't run:" + testName + " already running");
+      onError("Send Requests", "can't run: " + testName + " already running");
       return;
     }
     running = true; // test running
@@ -208,7 +213,7 @@
   // delete also works to delete existing friends
   async function deleteFriends() {
     if (running) {
-      onError("Delete Friends", "can't run:" + testName + " already running");
+      onError("Delete Friends", "can't run: " + testName + " already running");
       return;
     }
     running = true; // test running
@@ -221,12 +226,27 @@
     }
   }
 
+  function acceptAll(){
+    if (running) {
+      onError("Test User Accept All", "can't run: " + testName + " already running");
+      return;
+    }
+    running = true; // test running
+    needsError = false; // should not have errors
+    testName = "Test User Accept All";
+    responses = 0;
+    goal = goodEmails.length;
+    for (var i = 0; i < goal; i++) {
+      acceptFriendRequest(users[i], 'Test');
+    }
+  }
+
   // shows friends list of test user.
   function testFriendsList() {
     if (running) {
       onError(
         "Test User Friends list",
-        "can't run:" + testName + " already running"
+        "can't run: " + testName + " already running"
       );
       return;
     }
@@ -236,6 +256,24 @@
     responses = 0;
     goal = 1;
     getFriendsList(testUser);
+  }
+
+  function allFriendsLists(){
+    if (running) {
+      onError(
+        "All Users Friends lists",
+        "can't run: " + testName + " already running"
+      );
+      return;
+    }
+    running = true; // test running
+    needsError = false; // should not have errors
+    testName = "All Users Friends Lists";
+    responses = 0;
+    goal = users.length;
+    for (var i = 0; i < goal; i++){
+      getFriendsList(users[i]);
+    }
   }
 
   // sends a friend request from user to user with email and username passed in
@@ -281,6 +319,37 @@
     fetch("/api/users/account/friends", {
       method: "GET",
       payload: { id: user.IdToken },
+      headers: myHeaders,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        responses++;
+        if (json.errors === undefined) {
+          var pushUser = {name: user.email, friends: json.friends};
+          results.push(pushUser);
+        } else {
+          var pushUser = json.errors;
+          results.push(pushUser);
+        }
+      });
+  }
+
+  // accepts a friend request from 'from' to user
+  function acceptFriendRequest(user, from) {
+    var body = {
+      user: {
+        senderId: user.IdToken,
+        username: from,
+      },
+    }; // user to add
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Token " + user.Token);
+    var json = JSON.stringify(body); // create string of user json
+
+    fetch("/api/users/account/friends/accept", {
+      method: "POST",
+      body: json, 
       headers: myHeaders,
     })
       .then((response) => response.json())
@@ -479,7 +548,13 @@
               </button>
             </div>
             <br />
-            <div class="btn-group" role="group" aria-label="Basic example"></div>
+            <div class="btn-group" role="group" aria-label="Basic example">
+              <button type="button" name="button" class="btn btn-outline-danger" onclick="acceptAll()">
+                Test User: Accept Requests
+              <button type="button" name="button" class="btn btn-outline-danger" onclick="allFriendsLists()">
+                All Users: Get Friends List
+              </button>
+            </div>
           </div>
           <div class="card">
             <div id="message-container" class="card-block">

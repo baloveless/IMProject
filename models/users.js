@@ -23,13 +23,43 @@ userSchema.methods.addFriend = function (friend) {
   return true;
 };
 
-// when the user confirms the request, the request field is removed.
+// accepts request from receiving user
+userSchema.methods.acceptFriendReq = function (username) {
+  if (username === undefined) return false;
+  var friendsList = [];
+  var found = false;
+  for (var x = 0; x < this.friends.length; x++) {
+    if (this.friends[x].username == username &&
+      this.friends.request != 'sent pending') {
+      friendsList.push({
+        username: this.friends[x].username,
+        email: this.friends[x].email,
+        id: this.friends[x].id,
+        request: 'accepted',
+      });
+    } else 
+      friendsList.push(this.friends[x]);
+  }
+  return {found: found, friends: friendsList };
+}
+
+// confirms request for sending user
 userSchema.methods.confirmFriendReq = function (username) {
   if (username === undefined) return false;
-  this.friends.find({ username }).then((friend) => {
-    friend = { username: friend.username, email: friend.email, id: friend.id };
-  });
-  return true;
+  var friendsList = [];
+  for (var x = 0; x < this.friends.length; x++) {
+    if (this.friends[x].username == username &&
+      this.friends.request == 'sent pending') {
+      friendsList.push({
+        username: this.friends[x].username,
+        email: this.friends[x].email,
+        id: this.friends[x].id,
+        request: 'accepted',
+      });
+    } else 
+      friendsList.push(this.friends[x]);
+  }
+  return friendsList;
 };
 
 // removes a friend from a users friends list
@@ -50,13 +80,13 @@ userSchema.methods.friendsList = function () {
   var friendsList = [];
   this.friends.forEach((friend, i) => {
     if (!friend) i = i;
-    else if (friend.request === undefined)
+    else if (friend.request == 'accepted')
       friendsList.push({ username: friend.username, email: friend.email });
-    else if (friend.request === false)
+    else if (friend.request == 'sent pending')
       friendsList.push({
         username: friend.username,
         email: friend.email,
-        request: "pending",
+        request: friend.request,
       });
   });
   return friendsList;
@@ -66,7 +96,7 @@ userSchema.methods.friendsList = function () {
 userSchema.methods.friendRequests = function () {
   var friendsList = [];
   this.friends.forEach((friend, i) => {
-    if (friend.request !== undefined && friend.request)
+    if (friend.request == 'received pending')
       friendsList.push({ username: friend.username, email: friend.email });
   });
   return friendsList;

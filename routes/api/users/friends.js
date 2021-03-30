@@ -58,13 +58,13 @@ router.post("/", auth.required, (req, res, next) => {
               email: user.email,
               username: user.username,
               id: toRequest._id.toString(),
-              request: false,
+              request: "sent pending",
             }) || // request is false for sender
             !toRequest.addFriend({
               email: current.email,
               username: current.username,
               id: current._id.toString(),
-              request: true,
+              request: "received pending",
             })
           ) {
             return res.status(422).json({
@@ -75,7 +75,7 @@ router.post("/", auth.required, (req, res, next) => {
           }
         }
         current.save();
-        toRequest.save()
+        toRequest.save();
         return res.json({ friends: "Friend was added" });
       });
     } else
@@ -89,7 +89,7 @@ router.post("/", auth.required, (req, res, next) => {
 
 // this request should have  the users id, and the name of the user
 // they want to remove from their friends list.
-router.post("/delete", auth.required, async function (req, res, next) {
+router.post("/accept", auth.required, async function (req, res, next) {
   const {
     body: { user },
   } = req;
@@ -107,26 +107,76 @@ router.post("/delete", auth.required, async function (req, res, next) {
       },
     });
   }
+
   const users = await Users.find({
     $or: [{ _id: user.senderId }, { username: user.username }],
   });
   if (!users) return res.sendStatus(400);
-  var del1 = await users[1].deleteFriend(users[0].username)
-  var del2 = await users[0].deleteFriend(users[1].username)
-  if (!del1 || !del2) {
-    return ret = Promise.resolve(res.status(422).json({
-      errors: {
-        friend: "Failed to find in friends list",
-      },
-    }));
+  if (user.senderId == users[0]._id) {
+    // figure out who the sender is
+    sender = 1;
+    accept = 0;
+  } else {
+    sender = 0;
+    accept = 1;
   }
-  else {
+  var acc = users[accept].acceptFriendReq(users[sender].username);
+  if (acc.found) {
+    await Users.replaceOne({ _id: users[accept]._id }, { friends: acc.friends });
+    var sen = users[accept].confirmFriendReq(users[sender].username);
+    await Users.replaceOne({ _id: users[sender]._id }, { friends: sen });
+  }
+});
+
+// this request should have  the users id, and the name of the user
+// they want to remove from their friends list.
+router.post("/delete", auth.required, async function (req, res, next) {
+  const {
+    body: { user },
+  } = req;
+  if (!user.senderId) {
+    return (ret = Promise.resolve(
+      res.status(422).json({
+        errors: {
+          friend: "Need your id to delete",
+        },
+      })
+    ));
+  }
+  if (!user.username) {
+    return (ret = Promise.resolve(
+      res.status(422).json({
+        errors: {
+          friend: "Need username to delete",
+        },
+      })
+    ));
+  }
+  const users = await Users.find({
+    $or: [{ _id: user.senderId }, { username: user.username }],
+  });
+  if (!users) return (ret = Promise.resolve(res.sendStatus(400)));
+  var del1 = await users[1].deleteFriend(users[0].username);
+  var del2 = await users[0].deleteFriend(users[1].username);
+  if (!del1 || !del2) {
+    return (ret = Promise.resolve(
+      res.status(422).json({
+        errors: {
+          friend: "Failed to find in friends list",
+        },
+      })
+    ));
+  } else {
     await users[0].save();
     await users[1].save();
-    if (users[0]._id == user.senderId) 
-      return ret = Promise.resolve(res.json({ friends: users[0].friendsList() }));
-    else 
-      return ret = Promise.resolve(res.json({ friends: users[1].friendsList() }));
+    if (users[0]._id == user.senderId)
+      return (ret = Promise.resolve(
+        res.json({ friends: users[0].friendsList() })
+      ));
+    else
+      return (ret = Promise.resolve(
+        res.json({ friends: users[1].friendsList() })
+      ));
   }
 });
 
