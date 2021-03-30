@@ -8,7 +8,7 @@ Blake Loveless
 
 # Description
 
-This is an attempt to create a functioning chat application because I want more practice working with javascript. This app requires the user to have node and mongodb installed on their device. Note that this project is still a work in progress so many features are unavailable at this time.
+This is an attempt to create a functioning chat application because I want more practice working with javascript. The server must be run on a machine with node and mongodb installed. Note that this project is still a work in progress so many features are unavailable at this time.
 
 # Installation
 
@@ -48,6 +48,8 @@ Friends List: Working on creating and sending friend requests on the back end. R
 Homepage: Create the front end to add friends, then translate that into the chat structure
 
 # History of Features
+
+3/30/2021: Send request and delete friend are both working properly, Friend test suite is working better
 
 3/27/2021: User test suite complete, friend backend near complete, friend testing in progress
 

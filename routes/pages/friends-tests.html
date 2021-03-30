@@ -136,10 +136,9 @@
       } else {
         var error = false;
         for (var i = 0; i < goal - 1; i++) {
-          if (results[i].Token === undefined) {
+          if (results[i].errors !== undefined) {
             error = true;
           }
-
           if (verbose)
             onError(
               testName,
@@ -178,7 +177,7 @@
         "<b>" +
         friendsList[i].username +
         "</b>" +
-        "Email: " +
+        " Email: " +
         friendsList[i].email;
       if (friendsList[i].request) {
         message.innerHTML += " is <b>pending</b>";
@@ -315,16 +314,13 @@
       method: "POST",
       headers: myHeaders,
       body: json,
-    })
-    const bod = response.blob;
+    });
     responses++;
-    if (json.errors === undefined) {
-      var pushUser = json.friends;
-      results.push(pushUser);
+    if (response.ok) {
+      results.push({status: 'successful'});
       return ret = await Promise.resolve();
     } else {
-      var pushUser = json.errors;
-      results.push(pushUser);
+      results.push({errors: 'returned status ' + response.statusText });
       return ret = await Promise.resolve();
     }
   }

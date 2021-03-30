@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-diffHistory = require('mongoose-diff-history/diffHistory');
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
@@ -11,35 +10,6 @@ const userSchema = new mongoose.Schema({
   friends: [Object],
   chats: [String],
 });
-
-userSchema.plugin(diffHistory.plugin);
-
-userSchema.pre('save', function (next) {
-  //diffHistory.getDiffs('users', this._id, function (err, histories) {
-    //if (err)
-      //next(err);
-    //else if (!histories)
-      //next();
-    //else {
-      //histories.forEach((history, i) => {
-        //if (history.diff.friends)
-          //applyFriendsListHistory(history.diff.friends, this.friends);
-      //});
-    //}
-  //});
-  next();
-});
-
-// called pre save to ensure data cohesion in 
-// history and saved friends list
-//function applyFriendsListHistory(updates, friends) {
-  //// don't stringify, find a way to use regex to search through json object
-  //// OR use this progress and make another match call to retrieve username
-  //// to search for. 
-  //var changes = JSON.stringify(updates);
-  //var parsed = changes.match(/(\[\S*[^\[\]]\])/);
-  ////console.log(parsed[0]);
-//}
 
 
 // friend item should be an object containing a username,

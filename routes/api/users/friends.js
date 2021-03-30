@@ -114,23 +114,19 @@ router.post("/delete", auth.required, async function (req, res, next) {
   var del1 = await users[1].deleteFriend(users[0].username)
   var del2 = await users[0].deleteFriend(users[1].username)
   if (!del1 || !del2) {
-    res.status(422).json({
+    return ret = Promise.resolve(res.status(422).json({
       errors: {
         friend: "Failed to find in friends list",
       },
-    });
-    return ret = Promise.reject('error');
+    }));
   }
   else {
     await users[0].save();
     await users[1].save();
-    if (users[0]._id == user.senderId) {
-      res.json({ friends: users[0].friendsList() });
-    }
-    else {
-      res.json({ friends: users[1].friendsList() });
-    }
-    return ret = Promise.resolve('added');
+    if (users[0]._id == user.senderId) 
+      return ret = Promise.resolve(res.json({ friends: users[0].friendsList() }));
+    else 
+      return ret = Promise.resolve(res.json({ friends: users[1].friendsList() }));
   }
 });
 
