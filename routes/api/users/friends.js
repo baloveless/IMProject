@@ -122,10 +122,16 @@ router.post("/accept", auth.required, async function (req, res, next) {
   }
   var acc = users[accept].acceptFriendReq(users[sender].username);
   if (acc.found) {
-    await Users.replaceOne({ _id: users[accept]._id }, { friends: acc.friends });
+    await Users.findOneAndUpdate({ _id: users[accept]._id }, { $set: { friends: acc.friends } });
     var sen = users[accept].confirmFriendReq(users[sender].username);
-    await Users.replaceOne({ _id: users[sender]._id }, { friends: sen });
-  }
+    await Users.findOneAndUpdate({ _id: users[sender]._id }, { $set: { friends: sen } });
+    return res.json({friends: "Friend request accepted"});
+  } else
+    return res.status(422).json({
+      errors: {
+        friend: "Need username to delete",
+      },
+    });
 });
 
 // this request should have  the users id, and the name of the user

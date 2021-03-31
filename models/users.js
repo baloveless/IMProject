@@ -27,7 +27,6 @@ userSchema.methods.addFriend = function (friend) {
 userSchema.methods.acceptFriendReq = function (username) {
   if (username === undefined) return false;
   var friendsList = [];
-  var found = false;
   for (var x = 0; x < this.friends.length; x++) {
     if (this.friends[x].username == username &&
       this.friends.request != 'sent pending') {
@@ -37,10 +36,11 @@ userSchema.methods.acceptFriendReq = function (username) {
         id: this.friends[x].id,
         request: 'accepted',
       });
+      return {found: true, friends: friendsList };
     } else 
       friendsList.push(this.friends[x]);
   }
-  return {found: found, friends: friendsList };
+  return {found: false, friends: friendsList };
 }
 
 // confirms request for sending user
