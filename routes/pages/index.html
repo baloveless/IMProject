@@ -47,6 +47,12 @@
         font-size: 18px;
       }
     }
+
+    #friend-container {
+      height: 500px;
+      width: 300px;
+      overflow: auto;
+    }
   </style>
 </head>
 
@@ -67,7 +73,7 @@
   function getToken(){
     var tokens = document.cookie.split(';');
     var i = 0;
-    while (tokens[i].includes('Id')){
+    while (i < tokens.length -1 && tokens[i].includes('Id')){
       i++;
     }
     return tokens[i].replace('=', ' ');
@@ -77,7 +83,7 @@
   function getId(){
     var tokens = document.cookie.split(';');
     var i = 0;
-    while (!tokens[i].includes('Id')){
+    while (i < tokens.length -1 && !tokens[i].includes('Id')){
       i++;
     }
     return tokens[i].replace('IdToken=', '');
@@ -101,16 +107,32 @@
         if (json.errors === undefined) {
           document.cookie = `Token=${json.user.token}`;
           document.cookie = `IdToken=${json.user.id}`;
+          initializePage();
         }
         else {
-          //document.cookie = '';
-          //noToken();
+          logout();
         } 
       });
   }
 
   function noToken() {
     window.location = "/login";
+  }
+
+  // check for cookie
+  if (document.cookie === '') noToken();
+  else hasToken();
+
+  // called to fill the page with information
+  function initializePage(){
+    getFriendsList();
+  }
+
+  // displays a friend list upon return
+  function showFriendsList(friends){
+    friends.forEach((friend) => {
+      showFriend(friend);
+    })
   }
 
   // clears all cookies given to the users and kicks them to the login screen
@@ -124,8 +146,138 @@
     noToken();
   }
 
-  if (document.cookie === '') noToken();
-  else hasToken();
+  // friend is friend to show
+  function showFriend(friend) {
+    var message = document.createElement("div");
+    message.innerHTML = "<b>" + friend.username + "</b>" + "<button onclick = 'removeFriend(" + friend.username + ")' class = 'btn btn-danger'>Delete</button>"; 
+    var messages = document.getElementById("friends");
+    messages.appendChild(message);
+    messages.insertBefore(message, messages.firstChild);
+  }
+
+// sends a friend request from user to user with email and username passed in
+  function friendRequest(email, username) {
+    var user = {
+      user: {
+        senderId: getId(),
+        email: email,
+        username: username,
+      },
+    }; // user to add
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", getToken());
+    var json = JSON.stringify(user); // create string of user json
+
+    fetch("/api/users/account/friends/", {
+      method: "POST",
+      headers: myHeaders,
+      body: json,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        if (json.errors === undefined) {
+          var pushUser = json.friends;
+          results.push(pushUser);
+          // change response
+        } else {
+          var pushUser = json.errors;
+          results.push(pushUser);
+          // change response
+        }
+      });
+  }
+
+  // fetches a users friends list and displays it
+  function getFriendsList() {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", getToken());
+
+    fetch("/api/users/account/friends", {
+      method: "GET",
+      payload: { id: getId() },
+      headers: myHeaders,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        if (json.errors === undefined) {
+          showFriendsList(json.friends);
+        } else {
+          onError(json.errors);
+        }
+      });
+  }
+
+  // accepts a friend request from 'from' to user
+  function acceptFriendRequest(from) {
+    var body = {
+      user: {
+        senderId: getId(),
+        username: from,
+      },
+    }; // user to add
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", getToken());
+    var json = JSON.stringify(body); // create string of user json
+
+    fetch("/api/users/account/friends/accept", {
+      method: "POST",
+      body: json, 
+      headers: myHeaders,
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        if (json.errors === undefined) {
+          var pushUser = json.friends;
+          results.push(pushUser);
+          // change response
+        } else {
+          var pushUser = json.errors;
+          results.push(pushUser);
+          // change response
+        }
+      });
+  }
+
+  function removeFriend(username){
+    deleteFriend(username).then((res) => {
+      if (res == 'success')
+        showFriendsList();
+      else 
+        onError('Failed to delete friend')
+    });
+
+  }
+
+  // deletes a friend from sender ids list name
+  async function deleteFriend(username) {
+    var user = {
+      user: {
+        senderId: getId(),
+        username: username,
+      },
+    }; // user to add
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Token " + getToken());
+    var json = JSON.stringify(user); // create string of user json
+
+    var response = await fetch("/api/users/account/friends/delete", {
+      method: "POST",
+      headers: myHeaders,
+      body: json,
+    });
+    if (response.ok) {
+      return ret = await Promise.resolve('success');
+    } else {
+      return ret = await Promise.resolve('failure');
+    }
+  }
+
 </script>
 
 <body>
@@ -143,6 +295,25 @@
     </div>
   </span>
   <div class="main">
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div> 
     <div class="container">
       <div class="row">
         <div class="col-md-6 offset-md-3 col-sm-12">
@@ -150,6 +321,20 @@
           <div id="error-container" class="text-center"></div>
 
           <!Ideas for things on the home page: * recent chats * Show user status * welcome message />
+        </div>
+      </div>
+      <div class ="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+          <h3 class = "text-center">Friends</h3>
+          <div class = "card">
+            <div id= 'friend-container' class = card-block> 
+              <div id = "friends"></div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+  Launch demo modal
+</button>
+          </div>
         </div>
       </div>
     </div>

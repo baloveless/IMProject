@@ -41,13 +41,15 @@ localhost:3000
 
 ## Current
 
-Friends List: Working on creating and sending friend requests on the back end. Running into version control issues. Doing some research. Original Goal 3/27/2021, Moving to 4/1/2021.
+Friends list front end. Want to have this working by 4/3/2021
 
 ## Next 
 
 Homepage: Create the front end to add friends, then translate that into the chat structure
 
 # History of Features
+
+4/1/2021: Friends List backend working
 
 3/30/2021: Send request and delete friend are both working properly, Friend test suite is working better
 
