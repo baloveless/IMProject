@@ -121,10 +121,14 @@ router.post("/accept", auth.required, async function (req, res, next) {
     accept = 1;
   }
   var acc = users[accept].acceptFriendReq(users[sender].username);
-  if (acc.found) {
-    await Users.findOneAndUpdate({ _id: users[accept]._id }, { $set: { friends: acc.friends } });
-    var sen = users[accept].confirmFriendReq(users[sender].username);
-    await Users.findOneAndUpdate({ _id: users[sender]._id }, { $set: { friends: sen } });
+  if (acc != -1) {
+    await Users.updateOne({ _id: users[accept]._id }, { $set: { friends: { [acc]: {request: 'accepted'}}} });
+    var sen = users[sender].confirmFriendReq(users[accept].username);
+    await Users.updateOne({ _id: users[sender]._id }, {
+      $set: {
+        "friends.$.request": 'accepted'
+      }
+    });
     return res.json({friends: "Friend request accepted"});
   } else
     return res.status(422).json({
