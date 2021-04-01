@@ -34,7 +34,11 @@
     }
 
     .main {
+      height:100%;
+      width:100%;
       margin-left: 160px;
+      position: fixed;
+      background-color:lightgray;
       padding: 0px 10px;
     }
 
@@ -295,6 +299,27 @@
     </div>
   </span>
   <div class="main">
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+          <h1 class="text-center">IM Project Home</h1>
+          <div id="error-container" class="text-center"></div>
+
+          <!Ideas for things on the home page: * recent chats * Show user status * welcome message />
+        </div>
+      </div>
+      <div class ="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+          <h3 class = "text-center">Friends</h3>
+          <div class = "card">
+            <div id= 'friend-container' class = card-block> 
+              <div id = "friends"></div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="exampleModal">
+           Launch demo modal
+          </button>
 <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -314,31 +339,14 @@
     </div>
   </div>
 </div> 
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6 offset-md-3 col-sm-12">
-          <h1 class="text-center">IM Project Home</h1>
-          <div id="error-container" class="text-center"></div>
-
-          <!Ideas for things on the home page: * recent chats * Show user status * welcome message />
-        </div>
-      </div>
-      <div class ="row">
-        <div class="col-md-6 offset-md-3 col-sm-12">
-          <h3 class = "text-center">Friends</h3>
-          <div class = "card">
-            <div id= 'friend-container' class = card-block> 
-              <div id = "friends"></div>
-            </div>
-          </div>
-          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-  Launch demo modal
-</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
 </body>
+
+
 
 </html>
