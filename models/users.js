@@ -26,13 +26,21 @@ userSchema.methods.addFriend = function (friend) {
 // accepts request from receiving user
 userSchema.methods.acceptFriendReq = function (username) {
   if (username === undefined) return false;
+  var friendsList = [];
   for (var x = 0; x < this.friends.length; x++) {
     if (this.friends[x].username == username &&
       this.friends.request != 'sent pending') {
-      return x;
-    }
+      friendsList.push({
+        username: this.friends[x].username,
+        email: this.friends[x].email,
+        id: this.friends[x].id,
+        request: 'accepted',
+      });
+      return {found: true, friends: friendsList };
+    } else 
+      friendsList.push(this.friends[x]);
   }
-  return -1;
+  return {found: false, friends: friendsList };
 }
 
 // confirms request for sending user
@@ -42,10 +50,16 @@ userSchema.methods.confirmFriendReq = function (username) {
   for (var x = 0; x < this.friends.length; x++) {
     if (this.friends[x].username == username &&
       this.friends.request == 'sent pending') {
-      return x;
-    }    
+      friendsList.push({
+        username: this.friends[x].username,
+        email: this.friends[x].email,
+        id: this.friends[x].id,
+        request: 'accepted',
+      });
+    } else 
+      friendsList.push(this.friends[x]);
   }
-  return -1;
+  return friendsList;
 };
 
 // removes a friend from a users friends list
