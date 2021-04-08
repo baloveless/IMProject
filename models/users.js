@@ -2,15 +2,21 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
+const Friends = new mongoose.Schema({
+  username: String,
+  email: String,
+  id: String,
+  request: String,
+});
+
 const userSchema = new mongoose.Schema({
   username: String,
   email: String,
   hash: String,
   salt: String,
-  friends: [Object],
+  friends: [Friends],
   chats: [String],
 });
-
 
 // friend item should be an object containing a username,
 // email and id, some have request field
@@ -26,53 +32,44 @@ userSchema.methods.addFriend = function (friend) {
 // accepts request from receiving user
 userSchema.methods.acceptFriendReq = function (username) {
   if (username === undefined) return false;
-  var friendsList = [];
   for (var x = 0; x < this.friends.length; x++) {
-    if (this.friends[x].username == username &&
-      this.friends.request != 'sent pending') {
-      friendsList.push({
-        username: this.friends[x].username,
-        email: this.friends[x].email,
-        id: this.friends[x].id,
-        request: 'accepted',
-      });
-      return {found: true, friends: friendsList };
-    } else 
-      friendsList.push(this.friends[x]);
+    if (
+      this.friends[x].username == username &&
+      this.friends[x].request != "sent pending"
+    ) {
+      this.friends[x].request = "accepted";
+      return true;
+    }
   }
-  return {found: false, friends: friendsList };
-}
+  return false;
+};
 
 // confirms request for sending user
 userSchema.methods.confirmFriendReq = function (username) {
   if (username === undefined) return false;
-  var friendsList = [];
   for (var x = 0; x < this.friends.length; x++) {
-    if (this.friends[x].username == username &&
-      this.friends.request == 'sent pending') {
-      friendsList.push({
-        username: this.friends[x].username,
-        email: this.friends[x].email,
-        id: this.friends[x].id,
-        request: 'accepted',
-      });
-    } else 
-      friendsList.push(this.friends[x]);
+    if (
+      this.friends[x].username == username &&
+      this.friends[x].request == "sent pending"
+    ) {
+      this.friends[x].request = "accepted";
+      return true;
+    }
   }
-  return friendsList;
+  return true;
 };
 
 // removes a friend from a users friends list
 userSchema.methods.deleteFriend = async function (toFind) {
-    if (toFind === undefined) return false;
-    var stop = this.friends.length;
-    for (var i = 0; i < stop; i++) {
-      if (this.friends[i].username == toFind) {
-        this.friends.splice(i, 1);
-        return ret = await Promise.resolve(true)
-      }
+  if (toFind === undefined) return false;
+  var stop = this.friends.length;
+  for (var i = 0; i < stop; i++) {
+    if (this.friends[i].username == toFind) {
+      this.friends.splice(i, 1);
+      return (ret = await Promise.resolve(true));
+    }
   }
-  return ret = await Promise.resolve(false)
+  return (ret = await Promise.resolve(false));
 };
 
 // returns users friends list without ids
@@ -80,9 +77,9 @@ userSchema.methods.friendsList = function () {
   var friendsList = [];
   this.friends.forEach((friend, i) => {
     if (!friend) i = i;
-    else if (friend.request == 'accepted')
+    else if (friend.request == "accepted")
       friendsList.push({ username: friend.username, email: friend.email });
-    else if (friend.request == 'sent pending')
+    else if (friend.request == "sent pending")
       friendsList.push({
         username: friend.username,
         email: friend.email,
@@ -96,7 +93,7 @@ userSchema.methods.friendsList = function () {
 userSchema.methods.friendRequests = function () {
   var friendsList = [];
   this.friends.forEach((friend, i) => {
-    if (friend.request == 'received pending')
+    if (friend.request == "received pending")
       friendsList.push({ username: friend.username, email: friend.email });
   });
   return friendsList;
@@ -157,3 +154,4 @@ userSchema.methods.toAuthJSON = function () {
 };
 
 module.exports = mongoose.model("users", userSchema);
+module.exports = mongoose.model("friends", userSchema);
