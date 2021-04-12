@@ -48,18 +48,32 @@
       }
     }
 
-    #friend-container {
+    #chat-container {
       height: 500px;
       width: 300px;
       overflow: auto;
     }
   </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 
 <body>
   <div id="error-container" class="text-center"></div>
 </body>
+<script type ='text/javascript'>
+  $('#newChat').on('shown.bs.modal', function () {
+    $('#myInput').trigger('focus');
+  });
+</script>
 <script>
+  var friends;
+
+  function showModal(){
+    var modal = document.getElementById('newChat');
+    modal.className = 'modal fade show';
+    modal.style = 'display: block; padding-right: 16px;';
+  }
+
   function onError(message) {
     document.getElementById("error-container").innerHTML = message;
   }
@@ -70,20 +84,20 @@
   };
 
   // gets jwt from browser
-  function getToken(){
+  function getToken() {
     var tokens = document.cookie.split(';');
     var i = 0;
-    while (i < tokens.length -1 && tokens[i].includes('Id')){
+    while (i < tokens.length - 1 && tokens[i].includes('Id')) {
       i++;
     }
     return tokens[i].replace('=', ' ');
   }
 
   // get id token from browser
-  function getId(){
+  function getId() {
     var tokens = document.cookie.split(';');
     var i = 0;
-    while (i < tokens.length -1 && !tokens[i].includes('Id')){
+    while (i < tokens.length - 1 && !tokens[i].includes('Id')) {
       i++;
     }
     return tokens[i].replace('IdToken=', '');
@@ -92,14 +106,14 @@
   // renew token
   function hasToken() {
     var myHeaders = new Headers();
-    var token = getToken();  
+    var token = getToken();
     console.log(token);
     myHeaders.append("Authorization", token);
     myHeaders.append("Content-Type", "application/json");
 
     fetch("/api/users/account/current", {
       method: "GET",
-      payload: {id: getId()}, 
+      payload: { id: getId() },
       headers: myHeaders,
     })
       .then((response) => response.json()) // make response json
@@ -111,7 +125,7 @@
         }
         else {
           logout();
-        } 
+        }
       });
   }
 
@@ -124,21 +138,22 @@
   else hasToken();
 
   // called to fill the page with information
-  function initializePage(){
+  function initializePage() {
     getFriendsList();
+    // get chats
   }
 
   // displays a friend list upon return
-  function showFriendsList(friends){
+  function showFriendsList(friends) {
     friends.forEach((friend) => {
       showFriend(friend);
     })
   }
 
   // clears all cookies given to the users and kicks them to the login screen
-  function logout(){
+  function logout() {
     var cookies = document.cookie.split(';');
-    for (var i = 0; i < cookies.length; i++){
+    for (var i = 0; i < cookies.length; i++) {
       var equals = cookies[i].indexOf('=');
       var name = equals > -1 ? cookies[i].substr(0, equals) : cookie;
       document.cookie = name + "=;expires=Fri, 26, Mar 2020 00:00:00 GMT";
@@ -146,16 +161,19 @@
     noToken();
   }
 
+  /* 
+  */
+
   // friend is friend to show
-  function showFriend(friend) {
-    var message = document.createElement("div");
-    message.innerHTML = "<b>" + friend.username + "</b>" + "<button onclick = 'removeFriend(" + friend.username + ")' class = 'btn btn-danger'>Delete</button>"; 
-    var messages = document.getElementById("friends");
-    messages.appendChild(message);
-    messages.insertBefore(message, messages.firstChild);
+  function showChats(chat) {
+    //var message = document.createElement("div");
+    //message.innerHTML = "<div class='btn-group' role='group' aria-label='Friend'><button type='button' name='button' class='btn btn-outline-primary' onclick='#'><b>" + friend.username + "</b></button>" + "<button onclick = 'removeFriend(" + friend.username + ")' class = 'btn btn-outline-danger'>Delete</button><div>"; 
+    //var messages = document.getElementById("friends");
+    //messages.appendChild(message);
+    //messages.insertBefore(message, messages.firstChild);
   }
 
-// sends a friend request from user to user with email and username passed in
+  // sends a friend request from user to user with email and username passed in
   function friendRequest(email, username) {
     var user = {
       user: {
@@ -203,7 +221,7 @@
       .then((response) => response.json())
       .then((json) => {
         if (json.errors === undefined) {
-          showFriendsList(json.friends);
+          friends = json.friends;
         } else {
           onError(json.errors);
         }
@@ -225,7 +243,7 @@
 
     fetch("/api/users/account/friends/accept", {
       method: "POST",
-      body: json, 
+      body: json,
       headers: myHeaders,
     })
       .then((response) => response.json())
@@ -242,11 +260,11 @@
       });
   }
 
-  function removeFriend(username){
+  function removeFriend(username) {
     deleteFriend(username).then((res) => {
       if (res == 'success')
         showFriendsList();
-      else 
+      else
         onError('Failed to delete friend')
     });
 
@@ -295,25 +313,7 @@
     </div>
   </span>
   <div class="main">
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div>
-  </div>
-</div> 
+
     <div class="container">
       <div class="row">
         <div class="col-md-6 offset-md-3 col-sm-12">
@@ -323,18 +323,39 @@
           <!Ideas for things on the home page: * recent chats * Show user status * welcome message />
         </div>
       </div>
-      <div class ="row">
+      <div class="row">
         <div class="col-md-6 offset-md-3 col-sm-12">
-          <h3 class = "text-center">Friends</h3>
-          <div class = "card">
-            <div id= 'friend-container' class = card-block> 
-              <div id = "friends"></div>
+          <h3 class="text-center">Chats</h3>
+          <div class="card">
+            <div id='chat-container' class=card-block>
+              <div id="chats"></div>
             </div>
           </div>
-          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-  Launch demo modal
-</button>
-          </div>
+
+          <button type="button" class="btn btn-primary btn-block" data-toggle="modal" data-target="#newChat" onclick='showModal()'>
+            New Chat
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="modal fade" id="newChat" tabindex="-1" role="dialog" style='display: none;'
+    aria-labelledby="chatModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="chatModalLabel">Create New Chat</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">x</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p> Finally found it </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
         </div>
       </div>
     </div>
